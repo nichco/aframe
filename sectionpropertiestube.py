@@ -7,19 +7,16 @@ import python_csdl_backend
 
 class SectionPropertiesTube(csdl.Model):
     def initialize(self):
-        self.parameters.declare('options')
+        self.parameters.declare('name')
 
     def define(self):
-        options = self.parameters['options']
-        n = options['n']
+        name = self.parameters['name']
 
-        radius = self.declare_variable('radius',shape=(n-1))
-        thickness = self.declare_variable('thickness',shape=(n-1))
+        radius = self.declare_variable(name+'radius')
+        thickness = self.declare_variable(name+'thickness')
 
-        # Add thickness to the interior of the radius.
-        # The outer radius is the inputs['radius'] amount.
-        r1 = radius - thickness
-        r2 = radius
+        r1 = radius - thickness # IR
+        r2 = radius # OR
 
         # Compute the area, area moments of inertia, and polar moment of inertia
         A = np.pi * (r2**2 - r1**2)
@@ -27,7 +24,7 @@ class SectionPropertiesTube(csdl.Model):
         Iz = np.pi * (r2**4 - r1**4) / 4.0
         J = np.pi * (r2**4 - r1**4) / 2.0
 
-        self.register_output('A', A)
-        self.register_output('Iy', Iy)
-        self.register_output('Iz', Iz)
-        self.register_output('J', J)
+        self.register_output(name+'A', A)
+        self.register_output(name+'Iy', Iy)
+        self.register_output(name+'Iz', Iz)
+        self.register_output(name+'J', J)
