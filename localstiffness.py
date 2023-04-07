@@ -20,14 +20,10 @@ class LocalStiffness(csdl.Model):
         Iy = self.declare_variable(name+'Iy')
         Iz = self.declare_variable(name+'Iz')
         J = self.declare_variable(name+'J')
-        L = self.declare_variable(name+'L')
 
-        #nodes = self.declare_variable('nodes',shape=(3,n))
-
-        # compute lengths
-        #L = self.create_output('L',shape=(n-1))
-        #for i in range(n-1):
-        #    L[i] = csdl.pnorm(nodes[:,i+1] - nodes[:,i], pnorm_type=2)
+        node_a = self.declare_variable(name+'node_a',shape=(3))
+        node_b = self.declare_variable(name+'node_b',shape=(3))
+        L = csdl.pnorm(node_b - node_a, pnorm_type=2)
 
 
 
