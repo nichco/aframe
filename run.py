@@ -57,20 +57,37 @@ class Run(csdl.Model):
             kp = self.declare_variable(element_name+'kp',shape=(dim,dim))
             helper[i,:,:] = csdl.expand(kp, (1,dim,dim), 'ij->aij')
 
-        K = csdl.sum(helper, axes=(0, ))
-        self.register_output('K', K)
+        sum_k = csdl.sum(helper, axes=(0, ))
+        # self.register_output('K', K)
 
 
         # boundary conditions
-        #one = self.create_input('one',val=1)
-        #mask = self.create_output('mask',shape=(dim,dim),val=0)
-        #for i in range(dim):
-        #    mask[i,i] = csdl.reshape(one, (1,1))
+        bc_id = []
+        for node, id in node_id.items():
+            for bc_name in bcond:
+                if bcond[bc_name]['node'] == node:
 
-        #for i in range(dim):
-            
-        #    if i in bcond['nodes']:
+                    for i, fdim in enumerate(bcond[name]['fdim']):
+                        if fdim == 1:
+                            bc_id.append(id*6 + i)
 
+
+        mask = self.create_output('mask',shape=(dim,dim),val=np.eye(dim))
+        mask_eye = self.create_output('mask_eye',shape=(dim,dim),val=0)
+        zero = self.create_input('zero',shape=(1,1),val=0)
+        one = self.create_input('one',shape=(1,1),val=1)
+        for i in range(dim):
+            if i in bc_id: 
+                mask[i,i] = 1*zero
+                mask_eye[i,i] = 1*one
+
+        #self.print_var(mask_eye)
+
+        K = csdl.transpose(csdl.matmat(mask, csdl.transpose(csdl.matmat(mask,sum_k)))) + mask_eye
+        self.register_output('K', K)
+
+
+        #self.print_var(K)
 
         
 
@@ -132,5 +149,5 @@ if __name__ == '__main__':
     sim.run()
 
 
-    #K = sim['K']
-    #print(K[0,:])
+    Ks = np.round(sim['K'],2)
+    print(Ks)
