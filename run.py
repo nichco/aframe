@@ -18,10 +18,8 @@ class Run(csdl.Model):
         node_list = [*set(node_list)]
         num_unique_nodes = len(node_list)
 
-        # create a zipped list that contains the nodes and the node index
-        #node_id = zip([i for i in range(num_unique_nodes)], node_list)
+        # create a dictionary that contains the nodes and the node index
         node_id = {node_list[i]: i for i in range(num_unique_nodes)}
-        print(node_id)
 
 
         # create nodal inputs for each element:
@@ -51,8 +49,13 @@ class Run(csdl.Model):
 
 
         # construct the global stiffness matrix:
-        dim = num_unique_nodes*6
-        #K = self.create_output('K',shape=(dim,dim),val=0)
+        helper = self.create_output('helper',shape=(len(options),dim,dim),val=0)
+        for i, element_name in enumerate(options):
+            kp = self.declare_variable(element_name+'kp',shape=(dim,dim))
+            helper[i,:,:] = csdl.expand(kp, (1,dim,dim), 'ij->aij')
+
+        K = csdl.sum(helper, axes=(0, ))
+        self.register_output('K', K)
         
 
 
@@ -81,3 +84,6 @@ if __name__ == '__main__':
     sim = python_csdl_backend.Simulator(Run(options=options))
     sim.run()
 
+
+    #K = sim['K']
+    #print(K[0,:])
