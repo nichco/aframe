@@ -4,14 +4,17 @@ import python_csdl_backend
 from sectionpropertiestube import SectionPropertiesTube
 from transform import Transform
 from localstiffness import LocalStiffness
+from model import Model
 
 
 
 class Run(csdl.Model):
     def initialize(self):
         self.parameters.declare('options')
+        self.parameters.declare('bcond')
     def define(self):
         options = self.parameters['options']
+        bcond = self.parameters['bcond']
 
         # process the options dictionary to compute the total number of unique nodes:
         node_list = [options[name]['nodes'][0] for name in options] + [options[name]['nodes'][1] for name in options]
@@ -56,6 +59,42 @@ class Run(csdl.Model):
 
         K = csdl.sum(helper, axes=(0, ))
         self.register_output('K', K)
+
+
+        # boundary conditions
+        #one = self.create_input('one',val=1)
+        #mask = self.create_output('mask',shape=(dim,dim),val=0)
+        #for i in range(dim):
+        #    mask[i,i] = csdl.reshape(one, (1,1))
+
+        #for i in range(dim):
+            
+        #    if i in bcond['nodes']:
+
+
+        
+
+        # create the global loads vector
+        F = self.declare_variable('F',shape=(dim),val=0)
+
+
+        # solve the linear system
+        solve_res = self.create_implicit_operation(Model(dim=dim))
+        solve_res.declare_state(state='U', residual='R')
+        solve_res.nonlinear_solver = csdl.NewtonSolver(
+        solve_subsystems=False,
+        maxiter=100,
+        iprint=False,
+        )
+        solve_res.linear_solver = csdl.ScipyKrylov()
+
+        solve_res(K, F)
+
+
+        # recover the elemental forces
+
+
+        # perform a stress recovery
         
 
 
@@ -78,10 +117,18 @@ if __name__ == '__main__':
     options[name]['type'] = 'tube' # element type
 
 
+    bcond = {}
+
+    name = 'root'
+    bcond[name] = {}
+    bcond[name]['node'] = 0
+    bcond[name]['fdim'] = [1,1,1,1,1,1] # x, y, z, phi, theta, psi: a 1 indicates the corresponding dof is fixed
 
 
 
-    sim = python_csdl_backend.Simulator(Run(options=options))
+
+
+    sim = python_csdl_backend.Simulator(Run(options=options,bcond=bcond))
     sim.run()
 
 
