@@ -14,8 +14,9 @@ class Run(csdl.Model):
         options = self.parameters['options']
 
         # process the options dictionary to compute the total number of unique nodes:
-        node_list = [options[name]['node_a'] for name in options] + [options[name]['node_b'] for name in options]
-        num_unique_nodes = len(set(tuple(sub_list) for sub_list in node_list))
+        node_list = [options[name]['nodes'][0] for name in options] + [options[name]['nodes'][1] for name in options]
+        num_unique_nodes = len(set(node_list))
+        num_elements = len(options)
 
 
         # create nodal inputs for each element:
@@ -44,6 +45,9 @@ class Run(csdl.Model):
 
 
         # construct the global stiffness matrix:
+        dim = num_unique_nodes*6
+        #K = self.create_output('K',shape=(dim,dim),val=0)
+        
 
 
 
@@ -59,9 +63,10 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 1E20
-    options[name]['node_a'] = [0,0,0]
-    options[name]['node_b'] = [1,1,0]
-    options[name]['type'] = 'tube'
+    options[name]['nodes'] = [0,1] # node indices for [node_a, node_b]
+    options[name]['node_a'] = [0,0,0] # node_a coordinates
+    options[name]['node_b'] = [1,1,0] # node_b coordinates
+    options[name]['type'] = 'tube' # element type
 
 
 
