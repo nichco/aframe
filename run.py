@@ -15,7 +15,8 @@ class Run(csdl.Model):
 
         # process the options dictionary to compute the total number of unique nodes:
         node_list = [options[name]['nodes'][0] for name in options] + [options[name]['nodes'][1] for name in options]
-        num_unique_nodes = len(set(node_list))
+        node_list = [*set(node_list)]
+        num_unique_nodes = len(node_list)
         num_elements = len(options)
 
 

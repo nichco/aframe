@@ -87,7 +87,9 @@ class LocalStiffness(csdl.Model):
 
 
         # create the local element stiffness matrix using the direct-stiffness method:
-        kp = self.create_output(name+'kp',shape=(dim,dim),val=0)
+        #kp = self.create_output(name+'kp',shape=(dim,dim),val=0)
+
+        #kp[]
 
 
         """
