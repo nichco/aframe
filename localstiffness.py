@@ -8,17 +8,20 @@ class LocalStiffness(csdl.Model):
     def initialize(self):
         self.parameters.declare('options')
         self.parameters.declare('name')
-        self.parameters.declare('dim')
-        self.parameters.declare('node_list')
+        #self.parameters.declare('dim')
+        self.parameters.declare('node_id')
     def define(self):
         options = self.parameters['options']
         name = self.parameters['name']
-        dim = self.parameters['dim']
-        node_list = self.parameters['node_list']
+        #dim = self.parameters['dim']
+        node_id = self.parameters['node_id']
 
         # nodal indices:
         node_1 =  options['nodes'][0]
         node_2 =  options['nodes'][1]
+
+        node_1_id = [id for id, node in node_id if node == node_1]
+        node_2_id = [id for id, node in node_id if node == node_2]
 
         # the constant element properties:
         E = options['E']
@@ -39,48 +42,52 @@ class LocalStiffness(csdl.Model):
 
         # compute the nodal stiffness blocks (the four blocks comprising kp):
         k11 = self.create_output(name+'k11',shape=(6,6),val=0) # the upper left block
-        k11[0,0] = A*E/L
-        k11[1,1] = 12*E*Iz/L**3
-        k11[1,5] = k11[5,1] = 6*E*Iz/L**2
-        k11[2,2] = 12*E*Iy/L**3
-        k11[2,4] = k11[4,2] = -6*E*Iy/L**2
-        k11[3,3] = G*J/L
-        k11[4,4] = 4*E*Iy/L
-        k11[5,5] = 4*E*Iz/L
+        k11[0,0] = csdl.expand(A*E/L, (1,1), 'i->ij')
+        k11[1,1] = csdl.expand(12*E*Iz/L**3, (1,1), 'i->ij')
+        k11[1,5] = csdl.expand(6*E*Iz/L**2, (1,1), 'i->ij')
+        k11[5,1] = csdl.expand(6*E*Iz/L**2, (1,1), 'i->ij')
+        k11[2,2] = csdl.expand(12*E*Iy/L**3, (1,1), 'i->ij')
+        k11[2,4] = csdl.expand(-6*E*Iy/L**2, (1,1), 'i->ij')
+        k11[4,2] = csdl.expand(-6*E*Iy/L**2, (1,1), 'i->ij')
+        k11[3,3] = csdl.expand(G*J/L, (1,1), 'i->ij')
+        k11[4,4] = csdl.expand(4*E*Iy/L, (1,1), 'i->ij')
+        k11[5,5] = csdl.expand(4*E*Iz/L, (1,1), 'i->ij')
 
         k12 = self.create_output(name+'k12',shape=(6,6),val=0) # the upper right block
-        k12[0,0] = -A*E/L
-        k12[1,1] = -12*E*Iz/L**3
-        k12[1,5] = 6*E*Iz/L**2
-        k12[2,2] = -12*E*Iy/L**3
-        k12[2,4] = -6*E*Iy/L**2
-        k12[3,3] = -G*J/L
-        k12[4,2] = 6*E*Iy/L**2
-        k12[4,4] = 2*E*Iy/L
-        k12[5,1] = -6*E*Iz/L**2
-        k12[5,5] = 2*E*Iz/L
+        k12[0,0] = csdl.expand(-A*E/L, (1,1), 'i->ij')
+        k12[1,1] = csdl.expand(-12*E*Iz/L**3, (1,1), 'i->ij')
+        k12[1,5] = csdl.expand(6*E*Iz/L**2, (1,1), 'i->ij')
+        k12[2,2] = csdl.expand(-12*E*Iy/L**3, (1,1), 'i->ij')
+        k12[2,4] = csdl.expand(-6*E*Iy/L**2, (1,1), 'i->ij')
+        k12[3,3] = csdl.expand(-G*J/L, (1,1), 'i->ij')
+        k12[4,2] = csdl.expand(6*E*Iy/L**2, (1,1), 'i->ij')
+        k12[4,4] = csdl.expand(2*E*Iy/L, (1,1), 'i->ij')
+        k12[5,1] = csdl.expand(-6*E*Iz/L**2, (1,1), 'i->ij')
+        k12[5,5] = csdl.expand(2*E*Iz/L, (1,1), 'i->ij')
 
         k21 = self.create_output(name+'k21',shape=(6,6),val=0) # the lower left block
-        k21[0,0] = -A*E/L
-        k21[1,1] = -12*E*Iz/L**3
-        k21[1,5] = -6*E*Iz/L**2
-        k21[2,2] = -12*E*Iy/L**3
-        k21[2,4] = 6*E*Iy/L**2
-        k21[3,3] = -G*J/L
-        k21[4,2] = -6*E*Iy/L**2
-        k21[4,4] = 2*E*Iy/L
-        k21[5,1] = 6*E*Iz/L**2
-        k21[5,5] = 2*E*Iz/L
+        k21[0,0] = csdl.expand(-A*E/L, (1,1), 'i->ij')
+        k21[1,1] = csdl.expand(-12*E*Iz/L**3, (1,1), 'i->ij')
+        k21[1,5] = csdl.expand(-6*E*Iz/L**2, (1,1), 'i->ij')
+        k21[2,2] = csdl.expand(-12*E*Iy/L**3, (1,1), 'i->ij')
+        k21[2,4] = csdl.expand(6*E*Iy/L**2, (1,1), 'i->ij')
+        k21[3,3] = csdl.expand(-G*J/L, (1,1), 'i->ij')
+        k21[4,2] = csdl.expand(-6*E*Iy/L**2, (1,1), 'i->ij')
+        k21[4,4] = csdl.expand(2*E*Iy/L, (1,1), 'i->ij')
+        k21[5,1] = csdl.expand(6*E*Iz/L**2, (1,1), 'i->ij')
+        k21[5,5] = csdl.expand(2*E*Iz/L, (1,1), 'i->ij')
 
         k22 = self.create_output(name+'k22',shape=(6,6),val=0) # the lower right block
-        k22[0,0] = A*E/L
-        k22[1,1] = 12*E*Iz/L**3
-        k22[1,5] = k22[5,1] = -6*E*Iz/L**2
-        k22[2,2] = 12*E*Iy/L**3
-        k22[2,4] = k22[4,2] = 6*E*Iy/L**2
-        k22[3,3] = G*J/L
-        k22[4,4] = 4*E*Iy/L
-        k22[5,5] = 4*E*Iz/L
+        k22[0,0] = csdl.expand(A*E/L, (1,1), 'i->ij')
+        k22[1,1] = csdl.expand(12*E*Iz/L**3, (1,1), 'i->ij')
+        k22[1,5] = csdl.expand(-6*E*Iz/L**2, (1,1), 'i->ij')
+        k22[5,1] = csdl.expand(-6*E*Iz/L**2, (1,1), 'i->ij')
+        k22[2,2] = csdl.expand(12*E*Iy/L**3, (1,1), 'i->ij')
+        k22[2,4] = csdl.expand(6*E*Iy/L**2, (1,1), 'i->ij')
+        k22[4,2] = csdl.expand(6*E*Iy/L**2, (1,1), 'i->ij')
+        k22[3,3] = csdl.expand(G*J/L, (1,1), 'i->ij')
+        k22[4,4] = csdl.expand(4*E*Iy/L, (1,1), 'i->ij')
+        k22[5,5] = csdl.expand(4*E*Iz/L, (1,1), 'i->ij')
 
 
 
@@ -89,7 +96,11 @@ class LocalStiffness(csdl.Model):
         # create the local element stiffness matrix using the direct-stiffness method:
         #kp = self.create_output(name+'kp',shape=(dim,dim),val=0)
 
-        #kp[]
+        # assign the four block matrices to their respective positions in kp
+        #kp[] = 
+        #kp[] = 
+        #kp[] = 
+        #kp[] = 
 
 
         """
