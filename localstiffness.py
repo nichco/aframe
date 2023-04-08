@@ -8,20 +8,23 @@ class LocalStiffness(csdl.Model):
     def initialize(self):
         self.parameters.declare('options')
         self.parameters.declare('name')
-        #self.parameters.declare('dim')
+        self.parameters.declare('dim')
         self.parameters.declare('node_id')
     def define(self):
         options = self.parameters['options']
         name = self.parameters['name']
-        #dim = self.parameters['dim']
+        dim = self.parameters['dim']
         node_id = self.parameters['node_id']
 
         # nodal indices:
         node_1 =  options['nodes'][0]
         node_2 =  options['nodes'][1]
 
-        node_1_id = [id for id, node in node_id if node == node_1]
-        node_2_id = [id for id, node in node_id if node == node_2]
+        # node ID's:
+        node_1_id = [id for node, id in node_id.items() if node == node_1][0]
+        node_2_id = [id for node, id in node_id.items() if node == node_2][0]
+        print('ID1: ',node_1_id)
+        print('ID2: ',node_2_id)
 
         # the constant element properties:
         E = options['E']
@@ -94,66 +97,35 @@ class LocalStiffness(csdl.Model):
 
 
         # create the local element stiffness matrix using the direct-stiffness method:
-        #kp = self.create_output(name+'kp',shape=(dim,dim),val=0)
+        kp = self.create_output(name+'kp',shape=(dim,dim),val=0)
 
         # assign the four block matrices to their respective positions in kp
-        #kp[] = 
-        #kp[] = 
-        #kp[] = 
-        #kp[] = 
+        row_i = node_1_id*6
+        row_f = node_1_id*6 + 6
+        col_i = node_1_id*6
+        col_f = node_1_id*6 + 6
+        kp[row_i:row_f, col_i:col_f] = k11
 
 
-        """
-        kp = self.create_output(name+'kp',shape=(12,12),val=0)
+        row_i = node_1_id*6
+        row_f = node_1_id*6 + 6
+        col_i = node_2_id*6
+        col_f = node_2_id*6 + 6
+        kp[row_i:row_f, col_i:col_f] = k12
 
-        # the upper left block
-        kp[0, 0] = csdl.expand(A*E/L, (1,1), 'i->ij')
-        kp[1, 1] = csdl.expand(12*E*Iz/(L**3), (1,1), 'i->ij')
-        kp[1, 5] = csdl.expand(6*E*Iz/(L**2), (1,1), 'i->ij')
-        kp[2, 2] = csdl.expand(12*E*Iy/(L**3), (1,1), 'i->ij')
-        kp[2, 4] = csdl.expand(-6*E*Iy/(L**2), (1,1), 'i->ij')
-        kp[3, 3] = csdl.expand(G*J/L, (1,1), 'i->ij')
-        kp[4, 2] = csdl.expand(-6*E*Iy/(L**2), (1,1), 'i->ij')
-        kp[4, 4] = csdl.expand(4*E*Iy/L, (1,1), 'i->ij')
-        kp[5, 1] = csdl.expand(6*E*Iz/(L**2), (1,1), 'i->ij')
-        kp[5, 5] = csdl.expand(4*E*Iz/L, (1,1), 'i->ij')
 
-        # the upper right block
-        kp[0, 6] = csdl.expand(-A*E/L, (1,1), 'i->ij')
-        kp[1, 7] = csdl.expand(-12*E*Iz/(L**3), (1,1), 'i->ij')
-        kp[1, 11] = csdl.expand(6*E*Iz/(L**2), (1,1), 'i->ij')
-        kp[2, 8] = csdl.expand(-12*E*Iy/(L**3), (1,1), 'i->ij')
-        kp[2, 10] = csdl.expand(-6*E*Iy/(L**2), (1,1), 'i->ij')
-        kp[3, 9] = csdl.expand(-G*J/L, (1,1), 'i->ij')
-        kp[4, 8] = csdl.expand(6*E*Iy/(L**2), (1,1), 'i->ij')
-        kp[4, 10] = csdl.expand(2*E*Iy/L, (1,1), 'i->ij')
-        kp[5, 7] = csdl.expand(-6*E*Iz/(L**2), (1,1), 'i->ij')
-        kp[5, 11] = csdl.expand(2*E*Iz/L, (1,1), 'i->ij')
+        row_i = node_2_id*6
+        row_f = node_2_id*6 + 6
+        col_i = node_1_id*6
+        col_f = node_1_id*6 + 6
+        kp[row_i:row_f, col_i:col_f] = k21
 
-        # the bottom right block
-        kp[6, 6] = csdl.expand(A*E/L, (1,1), 'i->ij')
-        kp[7, 7] = csdl.expand(12*E*Iz/(L**3), (1,1), 'i->ij')
-        kp[7, 11] = csdl.expand(-6*E*Iz/(L**2), (1,1), 'i->ij')
-        kp[8, 8] = csdl.expand(12*E*Iy/(L**3), (1,1), 'i->ij')
-        kp[8, 10] = csdl.expand(6*E*Iy/(L**2), (1,1), 'i->ij')
-        kp[9, 9] = csdl.expand(G*J/L, (1,1), 'i->ij')
-        kp[10, 8] = csdl.expand(6*E*Iy/(L**2), (1,1), 'i->ij')
-        kp[10, 10] = csdl.expand(4*E*Iy/L, (1,1), 'i->ij')
-        kp[11, 7] = csdl.expand(-6*E*Iz/(L**2), (1,1), 'i->ij')
-        kp[11, 11] = csdl.expand(4*E*Iz/L, (1,1), 'i->ij')
 
-        # the bottom left block
-        kp[6, 0] = csdl.expand(-A*E/L, (1,1), 'i->ij')
-        kp[7, 1] = csdl.expand(-12*E*Iz/(L**3), (1,1), 'i->ij')
-        kp[7, 5] = csdl.expand(-6*E*Iz/(L**2), (1,1), 'i->ij')
-        kp[8, 2] = csdl.expand(-12*E*Iy/(L**3), (1,1), 'i->ij')
-        kp[8, 4] = csdl.expand(6*E*Iy/(L**2), (1,1), 'i->ij')
-        kp[9, 3] = csdl.expand(-G*J/L, (1,1), 'i->ij')
-        kp[10, 2] = csdl.expand(-6*E*Iy/(L**2), (1,1), 'i->ij')
-        kp[10, 4] = csdl.expand(2*E*Iy/L, (1,1), 'i->ij')
-        kp[11, 1] = csdl.expand(6*E*Iz/(L**2), (1,1), 'i->ij')
-        kp[11, 5] = csdl.expand(2*E*Iz/L, (1,1), 'i->ij')
-        """
+        row_i = node_2_id*6
+        row_f = node_2_id*6 + 6
+        col_i = node_2_id*6
+        col_f = node_2_id*6 + 6
+        kp[row_i:row_f, col_i:col_f] = k22
 
 
 

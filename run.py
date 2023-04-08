@@ -19,8 +19,9 @@ class Run(csdl.Model):
         num_unique_nodes = len(node_list)
 
         # create a zipped list that contains the nodes and the node index
-        node_id = zip([i for i in range(num_unique_nodes)], node_list)
-        print(list(node_id))
+        #node_id = zip([i for i in range(num_unique_nodes)], node_list)
+        node_id = {node_list[i]: i for i in range(num_unique_nodes)}
+        print(node_id)
 
 
         # create nodal inputs for each element:
@@ -39,8 +40,9 @@ class Run(csdl.Model):
 
 
         # compute the local stiffness matrix for each element:
+        dim = num_unique_nodes*6
         for element_name in options:
-            self.add(LocalStiffness(options=options[element_name],name=element_name,node_id=node_id), name=element_name+'LocalStiffness')
+            self.add(LocalStiffness(options=options[element_name],name=element_name,dim=dim,node_id=node_id), name=element_name+'LocalStiffness')
 
 
         # transform the local stiffness matrices to global coordinates:
