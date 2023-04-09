@@ -84,9 +84,6 @@ if __name__ == '__main__':
     sim.run()
 
 
-    #Ks = np.array(sim['K'])
-    #print(Ks)
-
     U = sim['U']
     print(U)
 

@@ -60,11 +60,13 @@ class Group(csdl.Model):
         # boundary conditions
         bc_id = []
         for node, id in node_id.items():
+            # check if the current node has a boundary condition:
             for bc_name in bcond:
                 if bcond[bc_name]['node'] == node:
-
+                    # iterate over 'fdim' to see which dof's are constrained:
                     for i, fdim in enumerate(bcond[bc_name]['fdim']):
                         if fdim == 1:
+                            # add the constrained dof ID to the bc_id list:
                             bc_id.append(id*6 + i)
 
 
@@ -129,6 +131,12 @@ class Group(csdl.Model):
 
             # solve for the local loads:
             fp[i,:] = csdl.reshape(csdl.matvec(kp,csdl.matvec(T,d)), (1,12))
+
+
+
+
+
+
 
 
         # parse the displacements to get the new nodal coordinates:
