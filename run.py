@@ -1,11 +1,7 @@
 import numpy as np
 import csdl
 import python_csdl_backend
-from sectionpropertiestube import SectionPropertiesTube
-from localstiffness import LocalStiffness
-from model import Model
 import matplotlib.pyplot as plt
-
 from group import Group
 
 
