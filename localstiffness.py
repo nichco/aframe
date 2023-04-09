@@ -37,15 +37,15 @@ class LocalStiffness(csdl.Model):
         J = self.declare_variable(name+'J')
 
         # nodal coordinates:
-        node_a = self.declare_variable(name+'node_a',shape=(3))
-        node_b = self.declare_variable(name+'node_b',shape=(3))
+        node_a = self.declare_variable(name+'node_a',shape=(6))
+        node_b = self.declare_variable(name+'node_b',shape=(6))
 
         # get the element length:
-        L = csdl.pnorm(node_b - node_a, pnorm_type=2)
-        self.print_var(L)
+        L = csdl.pnorm(node_b[0:3] - node_a[0:3], pnorm_type=2)
+        #self.print_var(L)
 
 
-        kp = self.create_output(name+'kp',shape=(dim,dim),val=0)
+        kp = self.create_output(name+'kp',shape=(12,12),val=0)
         # the upper left block
         kp[0,0] = csdl.expand(A*E/L, (1,1), 'i->ij')
         kp[1,1] = csdl.expand(12*E*Iz/L**3, (1,1), 'i->ij')
@@ -132,8 +132,8 @@ class LocalStiffness(csdl.Model):
 
 
         tkt = csdl.matmat(csdl.transpose(T), csdl.matmat(kp, T))
-        #self.register_output(name+'tkt',tkt)
 
+        #self.print_var(tkt)
 
         # expand the transformed stiffness matrix to the global dimensions:
         k = self.create_output(name+'k',shape=(dim,dim),val=0)
