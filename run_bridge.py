@@ -24,7 +24,6 @@ class Run(csdl.Model):
 
         # create the global loads vector
         loads = np.zeros((dim))
-        #loads[dim-4] = -20000
 
         f_id = node_id[3] # apply a force at node 2
         loads[f_id*6 + 1] = 200000
@@ -168,6 +167,18 @@ if __name__ == '__main__':
     #fig = plt.figure()
     #ax = fig.add_subplot(projection='3d')
 
+    # plot the undeformed bridge
+    for element_name in options:
+        a = options[element_name]['node_a']
+        b = options[element_name]['node_b']
+
+        xu = np.array([a[0],b[0]])
+        yu = np.array([a[1],b[1]])
+        zu = np.array([a[2],b[2]])
+
+        plt.plot(xu,yu,color='silver',linewidth=5)
+
+    # plot the deformed bridge
     for i, element_name in enumerate(options):
         coord_a = coord[i,0,:]
         coord_b = coord[i,1,:]
@@ -178,6 +189,8 @@ if __name__ == '__main__':
 
         #ax.plot(x,y,z,color='k')
         plt.plot(x,y,color='k')
+        plt.scatter(x,y,s=40,zorder=10)
+
 
 
     #ax.set_xlim(0,3)

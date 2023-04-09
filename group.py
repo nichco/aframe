@@ -86,11 +86,7 @@ class Group(csdl.Model):
 
         
 
-        # create the global loads vector
-        #loads = np.zeros((dim))
-        #loads[dim-4] = -20000
-        #print(loads)
-        #F = self.declare_variable('F',shape=(dim),val=loads)
+        # declare the global loads vector
         F = self.declare_variable('F',shape=(dim))
 
 

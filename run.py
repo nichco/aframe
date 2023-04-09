@@ -22,7 +22,7 @@ class Run(csdl.Model):
 
         # create the global loads vector
         loads = np.zeros((dim))
-        loads[dim-4] = -20000
+        loads[dim-4] = -1000
         F = self.create_input('F',shape=(dim),val=loads)
 
         # solve the beam group:
@@ -102,5 +102,13 @@ if __name__ == '__main__':
 
     ax.set_xlim(0,3)
     ax.set_ylim(-1,1)
-    ax.set_zlim(-0.1,0.1)
+    ax.set_zlim(-0.4,0.1)
     plt.show()
+
+
+    F = -1000
+    L = 3
+    E = 69E9
+    I = sim['element_1Iy']
+    dmax = F*(L**3)/(3*E*I)
+    print('dmax: ',dmax)
