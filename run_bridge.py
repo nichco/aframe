@@ -166,6 +166,7 @@ if __name__ == '__main__':
 
     #fig = plt.figure()
     #ax = fig.add_subplot(projection='3d')
+    plt.rcParams["figure.figsize"] = (8,3)
 
     # plot the undeformed bridge
     for element_name in options:
@@ -176,7 +177,8 @@ if __name__ == '__main__':
         yu = np.array([a[1],b[1]])
         zu = np.array([a[2],b[2]])
 
-        plt.plot(xu,yu,color='silver',linewidth=5)
+        plt.plot(xu,yu,color='silver',linewidth=4)
+        plt.scatter(xu,yu,s=50,color='silver',edgecolors='black',linewidth=0.5,zorder=5)
 
     # plot the deformed bridge
     for i, element_name in enumerate(options):
@@ -188,9 +190,11 @@ if __name__ == '__main__':
         z = np.array([coord_a[2], coord_b[2]])
 
         #ax.plot(x,y,z,color='k')
-        plt.plot(x,y,color='k')
-        plt.scatter(x,y,s=40,zorder=10)
+        plt.plot(x,y,color='k',zorder=7)
+        plt.scatter(x,y,s=50,zorder=10,color='yellow',edgecolors='black',linewidth=1)
 
+
+    plt.arrow(1.5,1,0,0.2,width=0.04,color='red')
 
 
     #ax.set_xlim(0,3)
