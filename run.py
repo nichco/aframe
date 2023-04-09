@@ -2,7 +2,6 @@ import numpy as np
 import csdl
 import python_csdl_backend
 from sectionpropertiestube import SectionPropertiesTube
-from transform import Transform
 from localstiffness import LocalStiffness
 from model import Model
 
@@ -20,6 +19,7 @@ class Run(csdl.Model):
         node_list = [options[name]['nodes'][0] for name in options] + [options[name]['nodes'][1] for name in options]
         node_list = [*set(node_list)]
         num_unique_nodes = len(node_list)
+        num_elements = len(options)
 
         # create a dictionary that contains the nodes and the node index
         node_id = {node_list[i]: i for i in range(num_unique_nodes)}
@@ -46,19 +46,13 @@ class Run(csdl.Model):
             self.add(LocalStiffness(options=options[element_name],name=element_name,dim=dim,node_id=node_id), name=element_name+'LocalStiffness')
 
 
-        # transform the local stiffness matrices to global coordinates:
-        for element_name in options:
-            self.add(Transform(options=options[element_name],name=element_name), name=element_name+'Transform')
-
-
         # construct the global stiffness matrix:
-        helper = self.create_output('helper',shape=(len(options),dim,dim),val=0)
+        helper = self.create_output('helper',shape=(num_elements,dim,dim),val=0)
         for i, element_name in enumerate(options):
-            kp = self.declare_variable(element_name+'kp',shape=(dim,dim))
-            helper[i,:,:] = csdl.expand(kp, (1,dim,dim), 'ij->aij')
+            k = self.declare_variable(element_name+'k',shape=(dim,dim))
+            helper[i,:,:] = csdl.expand(k, (1,dim,dim), 'ij->aij')
 
         sum_k = csdl.sum(helper, axes=(0, ))
-        # self.register_output('K', K)
 
 
         # boundary conditions
@@ -81,18 +75,15 @@ class Run(csdl.Model):
                 mask[i,i] = 1*zero
                 mask_eye[i,i] = 1*one
 
-        #self.print_var(mask_eye)
+
 
         K = csdl.transpose(csdl.matmat(mask, csdl.transpose(csdl.matmat(mask,sum_k)))) + mask_eye
         self.register_output('K', K)
 
-
-        #self.print_var(K)
-
         
 
         # create the global loads vector
-        F = self.declare_variable('F',shape=(dim),val=0)
+        F = self.declare_variable('F',shape=(dim),val=np.array([0,0,0,0,0,0,100000,0,0,0,0,0]))
 
 
         # solve the linear system
@@ -105,10 +96,17 @@ class Run(csdl.Model):
         )
         solve_res.linear_solver = csdl.ScipyKrylov()
 
-        solve_res(K, F)
+        U = solve_res(K, F)
 
 
-        # recover the elemental forces
+
+        # recover the local elemental forces/moments (fp):
+        fp = self.create_output('fp',shape=(num_elements,12),val=0)
+        for i, element_name in enumerate(options):
+            d = U[i*12:i*12 + 12]
+            kp = self.declare_variable(element_name+'kp',shape=(12,12))
+            T = self.declare_variable(element_name+'T',shape=(12,12))
+            fp[i,:] = csdl.reshape(csdl.matvec(kp,csdl.matvec(T,d)), (1,12))
 
 
         # perform a stress recovery
@@ -127,10 +125,10 @@ if __name__ == '__main__':
     name = 'element_1'
     options[name] = {}
     options[name]['E'] = 69E9
-    options[name]['G'] = 1E20
+    options[name]['G'] = 26E9
     options[name]['nodes'] = [0,1] # node indices for [node_a, node_b]
     options[name]['node_a'] = [0,0,0] # node_a coordinates
-    options[name]['node_b'] = [1,1,0] # node_b coordinates
+    options[name]['node_b'] = [3,0,0] # node_b coordinates
     options[name]['type'] = 'tube' # element type
 
 
@@ -149,5 +147,8 @@ if __name__ == '__main__':
     sim.run()
 
 
-    Ks = np.round(sim['K'],2)
-    print(Ks)
+    Ks = np.array(sim['K'])
+    #print(Ks)
+
+    U = sim['U']
+    print(U)
