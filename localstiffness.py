@@ -23,8 +23,7 @@ class LocalStiffness(csdl.Model):
         # node ID's:
         node_1_id = [id for node, id in node_id.items() if node == node_1][0]
         node_2_id = [id for node, id in node_id.items() if node == node_2][0]
-        #print('ID1: ',node_1_id)
-        #print('ID2: ',node_2_id)
+
 
         # the constant element properties:
         E = options['E']
