@@ -13,7 +13,7 @@ class SectionPropertiesTube(csdl.Model):
         name = self.parameters['name']
 
         radius = self.declare_variable(name+'radius',val=0.125)
-        thickness = self.declare_variable(name+'thickness',val=0.0001)
+        thickness = self.declare_variable(name+'thickness',val=0.001)
 
         r1 = radius - thickness # IR
         r2 = radius # OR

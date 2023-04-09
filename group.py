@@ -4,6 +4,7 @@ import python_csdl_backend
 from sectionpropertiestube import SectionPropertiesTube
 from localstiffness import LocalStiffness
 from model import Model
+from stress import StressTube
 
 
 
@@ -105,7 +106,7 @@ class Group(csdl.Model):
         
 
         # recover the local elemental forces/moments (fp):
-        fp = self.create_output('fp',shape=(num_elements,12),val=0)
+        local_loads = self.create_output('local_loads',shape=(num_elements,12),val=0)
         for i, element_name in enumerate(options):
             # get the nodes and the node ID's:
             node_1, node_2 =  options[element_name]['nodes'][0], options[element_name]['nodes'][1]
@@ -126,9 +127,11 @@ class Group(csdl.Model):
             T = self.declare_variable(element_name+'T',shape=(12,12))
 
             # solve for the local loads:
-            fp[i,:] = csdl.reshape(csdl.matvec(kp,csdl.matvec(T,d)), (1,12))
+            # group output:
+            local_loads[i,:] = csdl.reshape(csdl.matvec(kp,csdl.matvec(T,d)), (1,12))
 
-
+            # element output:
+            self.register_output(element_name+'local_loads', csdl.matvec(kp,csdl.matvec(T,d)))
 
 
 
@@ -152,7 +155,7 @@ class Group(csdl.Model):
             dn1 = U[node_1_id*6:node_1_id*6 + 6] # node 1 displacements
             dn2 = U[node_2_id*6:node_2_id*6 + 6] # node 2 displacements
 
-
+            # assign grouped output:
             coord[i,0,:] = csdl.reshape(node_a + dn1, (1,1,6))
             coord[i,1,:] = csdl.reshape(node_b + dn2, (1,1,6))
 
@@ -160,3 +163,7 @@ class Group(csdl.Model):
 
 
         # perform a stress recovery
+        vonmises_stress = self.create_output('vonmises_stress',shape=(num_elements))
+        for i, element_name in enumerate(options):
+            self.add(StressTube(options=options[element_name],name=element_name), name=element_name+'Stress')
+            vonmises_stress[i] = self.declare_variable(element_name+'s_vm')

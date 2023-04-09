@@ -13,6 +13,8 @@ A linear beam and frame FEA solver written in CSDL
 ## Installation instructions for users
 
 git clone https://github.com/nichco/lsdo_structures.git
+
+# Installation:
 pip install -e .
 
 

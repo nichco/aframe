@@ -22,7 +22,7 @@ class Run(csdl.Model):
 
         # create the global loads vector
         loads = np.zeros((dim))
-        loads[dim-4] = -1000
+        loads[dim-4] = 100
         F = self.create_input('F',shape=(dim),val=loads)
 
         # solve the beam group:
@@ -81,7 +81,8 @@ if __name__ == '__main__':
 
 
     U = sim['U']
-    print(U)
+    vonmises_stress = sim['vonmises_stress']
+    print(vonmises_stress)
 
 
     coord = sim['coord']
