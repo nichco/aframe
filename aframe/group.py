@@ -97,7 +97,7 @@ class Group(csdl.Model):
         solve_res.declare_state(state='U', residual='R')
         solve_res.nonlinear_solver = csdl.NewtonSolver(
         solve_subsystems=False,
-        maxiter=200,
+        maxiter=1000,
         iprint=False,
         )
         solve_res.linear_solver = csdl.ScipyKrylov()
@@ -153,6 +153,10 @@ class Group(csdl.Model):
             # get the nodal displacements for the current element:
             dn1 = U[node_1_id*6:node_1_id*6 + 6] # node 1 displacements
             dn2 = U[node_2_id*6:node_2_id*6 + 6] # node 2 displacements
+
+            # assign the elemental output:
+            self.register_output(element_name+'node_a_def',node_a + dn1)
+            self.register_output(element_name+'node_b_def',node_b + dn2)
 
             # assign grouped output:
             coord[i,0,:] = csdl.reshape(node_a + dn1, (1,1,6))
