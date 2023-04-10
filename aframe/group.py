@@ -1,10 +1,9 @@
 import numpy as np
 import csdl
-import python_csdl_backend
 from aframe.sectionproperties import SectionPropertiesTube, SectionPropertiesBox, SectionPropertiesRect
 from aframe.localstiffness import LocalStiffness
 from aframe.model import Model
-from aframe.stress import StressTube
+from aframe.stress import StressTube, StressBox
 from aframe.cg import Cg
 
 
@@ -176,7 +175,8 @@ class Group(csdl.Model):
                 raise NotImplementedError('Error: stress recovery for rectangular beams is not implemented')
             
             elif options[element_name]['type'] == 'box':
-                raise NotImplementedError('Error: stress recovery for box beams is not implemented')
+                self.add(StressBox(options=options[element_name],name=element_name), name=element_name+'Stress')
+                vonmises_stress[i] = self.declare_variable(element_name+'s_vm')
             
             else:
                 raise NotImplementedError('Error: stress recovery for [beam type] is not implemented')
