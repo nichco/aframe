@@ -44,7 +44,6 @@ class StressTube(csdl.Model):
 
         # sum the bending and normal stresses:
         s_axial = s_normal + s_bend
-        #self.print_var(s_axial)
 
 
         # compute the von-mises stress

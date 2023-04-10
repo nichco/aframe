@@ -5,6 +5,7 @@ from sectionpropertiestube import SectionPropertiesTube
 from localstiffness import LocalStiffness
 from model import Model
 from stress import StressTube
+from cg import Cg
 
 
 
@@ -167,3 +168,8 @@ class Group(csdl.Model):
         for i, element_name in enumerate(options):
             self.add(StressTube(options=options[element_name],name=element_name), name=element_name+'Stress')
             vonmises_stress[i] = self.declare_variable(element_name+'s_vm')
+
+
+        
+        # compute the structural cg:
+        self.add(Cg(options=options), name='Cg')

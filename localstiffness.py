@@ -41,6 +41,7 @@ class LocalStiffness(csdl.Model):
 
         # get the element length:
         L = csdl.pnorm(node_b[0:3] - node_a[0:3], pnorm_type=2)
+        self.register_output(name+'L', L)
         #self.print_var(L)
 
 

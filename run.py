@@ -41,6 +41,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700 # (kg/m^3)
     options[name]['nodes'] = [0,1] # node indices for [node_a, node_b]
     options[name]['node_a'] = [0,0,0,0,0,0] # node_a coordinates
     options[name]['node_b'] = [1,0,0,0,0,0] # node_b coordinates
@@ -50,6 +51,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [1,2]
     options[name]['node_a'] = [1,0,0,0,0,0]
     options[name]['node_b'] = [2,0,0,0,0,0]
@@ -59,6 +61,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [2,3]
     options[name]['node_a'] = [2,0,0,0,0,0]
     options[name]['node_b'] = [3,0,0,0,0,0]
