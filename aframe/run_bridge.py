@@ -19,13 +19,16 @@ class Run(csdl.Model):
         node_list = [*set(node_list)]
         num_unique_nodes = len(node_list)
         dim = num_unique_nodes*6
-
         node_id = {node_list[i]: i for i in range(num_unique_nodes)}
+
+        # create the undeformed nodal inputs for each element:
+        for element_name in options:
+            self.create_input(element_name+'node_a',shape=(6),val=options[element_name]['node_a'])
+            self.create_input(element_name+'node_b',shape=(6),val=options[element_name]['node_b'])
 
         # create the global loads vector
         loads = np.zeros((dim))
-
-        f_id = node_id[3] # apply a force at node 2
+        f_id = node_id[3] # apply a force at node 3
         loads[f_id*6 + 1] = 200000
 
         F = self.create_input('F',shape=(dim),val=loads)
@@ -172,14 +175,12 @@ if __name__ == '__main__':
     sim = python_csdl_backend.Simulator(Run(options=options,bcond=bcond))
     sim.run()
 
-
+    # get the deformed nodal coordinates:
     coord = sim['coord']
 
-    #fig = plt.figure()
-    #ax = fig.add_subplot(projection='3d')
     plt.rcParams["figure.figsize"] = (8,3)
 
-    # plot the undeformed bridge
+    # plot the undeformed bridge:
     for element_name in options:
         a = options[element_name]['node_a']
         b = options[element_name]['node_b']
@@ -191,7 +192,7 @@ if __name__ == '__main__':
         plt.plot(xu,yu,color='silver',linewidth=4)
         plt.scatter(xu,yu,s=50,color='silver',edgecolors='black',linewidth=0.5,zorder=5)
 
-    # plot the deformed bridge
+    # plot the deformed bridge:
     for i, element_name in enumerate(options):
         coord_a = coord[i,0,:]
         coord_b = coord[i,1,:]
@@ -200,13 +201,13 @@ if __name__ == '__main__':
         y = np.array([coord_a[1], coord_b[1]])
         z = np.array([coord_a[2], coord_b[2]])
 
-        #ax.plot(x,y,z,color='k')
         plt.plot(x,y,color='k',zorder=7)
         plt.scatter(x,y,s=50,zorder=10,color='yellow',edgecolors='black',linewidth=1)
 
-
+    # plot the applied force arrow:
     plt.arrow(1.5,1,0,0.2,width=0.04,color='red')
 
+    # plot the cg:
     cg = sim['cg']
     plt.scatter(cg[0],cg[1],color='blue',s=50,edgecolors='black')
 

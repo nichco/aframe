@@ -1,7 +1,7 @@
 import numpy as np
 import csdl
 import python_csdl_backend
-from aframe.sectionpropertiestube import SectionPropertiesTube
+from aframe.sectionproperties import SectionPropertiesTube, SectionPropertiesBox, SectionPropertiesRect
 from aframe.localstiffness import LocalStiffness
 from aframe.model import Model
 from aframe.stress import StressTube
@@ -30,18 +30,19 @@ class Group(csdl.Model):
         node_id = {node_list[i]: i for i in range(num_unique_nodes)}
 
 
-        # create nodal inputs for each element:
-        for element_name in options:
-            self.create_input(element_name+'node_a',shape=(6),val=options[element_name]['node_a'])
-            self.create_input(element_name+'node_b',shape=(6),val=options[element_name]['node_b'])
 
 
         # compute the section properties for each element:
         for element_name in options:
             if options[element_name]['type'] == 'tube': 
                 self.add(SectionPropertiesTube(name=element_name), name=element_name+'SectionPropertiesTube')
+
             elif options[element_name]['type'] == 'box': 
-                raise NotImplementedError('Error: type box for ' + element_name + ' is not implemented')
+                self.add(SectionPropertiesBox(name=element_name), name=element_name+'SectionPropertiesBox')
+
+            elif options[element_name]['type'] == 'rect': 
+                self.add(SectionPropertiesRect(name=element_name), name=element_name+'SectionPropertiesRect')
+
             else: raise NotImplementedError('Error: type for' + element_name + 'is not implemented')
 
 

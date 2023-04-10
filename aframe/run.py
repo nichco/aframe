@@ -20,6 +20,11 @@ class Run(csdl.Model):
         num_unique_nodes = len(node_list)
         dim = num_unique_nodes*6
 
+        # create the undeformed nodal inputs for each element:
+        for element_name in options:
+            self.create_input(element_name+'node_a',shape=(6),val=options[element_name]['node_a'])
+            self.create_input(element_name+'node_b',shape=(6),val=options[element_name]['node_b'])
+
         # create the global loads vector
         loads = np.zeros((dim))
         loads[dim-4] = 100
