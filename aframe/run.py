@@ -115,6 +115,7 @@ if __name__ == '__main__':
     plt.show()
 
     """
+    # validation:
     F = -1000
     L = 3
     E = 69E9

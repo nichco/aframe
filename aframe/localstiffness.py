@@ -182,16 +182,4 @@ class LocalStiffness(csdl.Model):
 
 if __name__ == '__main__':
 
-    options = {}
-    options['E'] = 69E9
-    options['G'] = 1E20
-    options['n'] = 2
-
-    sim = python_csdl_backend.Simulator(LocalStiffness(options=options))
-    sim.run()
-
-
-    kp = sim['kp']
-
-    np.set_printoptions(linewidth=200)
-    print(np.round(kp, 2))
+    pass

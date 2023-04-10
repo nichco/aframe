@@ -120,18 +120,17 @@ class Group(csdl.Model):
 
             # concatenate the nodal displacements:
             d = self.create_output(element_name+'d',shape=(12),val=0)
-            d[0:6] = dn1
-            d[6:12] = dn2
+            d[0:6], d[6:12] = dn1, dn2
 
             # declare the variables for the local stiffness matrix and the element transformation matrix:
             kp = self.declare_variable(element_name+'kp',shape=(12,12))
             T = self.declare_variable(element_name+'T',shape=(12,12))
 
             # solve for the local loads:
-            # group output:
+            # group output (required for plotting and post processing):
             local_loads[i,:] = csdl.reshape(csdl.matvec(kp,csdl.matvec(T,d)), (1,12))
 
-            # element output:
+            # element output (required for the stress recovery):
             self.register_output(element_name+'local_loads', csdl.matvec(kp,csdl.matvec(T,d)))
 
 
@@ -151,7 +150,6 @@ class Group(csdl.Model):
             node_1_id = [id for node, id in node_id.items() if node == node_1][0]
             node_2_id = [id for node, id in node_id.items() if node == node_2][0]
 
-            # get the displacements:
             # get the nodal displacements for the current element:
             dn1 = U[node_1_id*6:node_1_id*6 + 6] # node 1 displacements
             dn2 = U[node_2_id*6:node_2_id*6 + 6] # node 2 displacements
@@ -164,7 +162,7 @@ class Group(csdl.Model):
 
 
         # perform a stress recovery:
-        vonmises_stress = self.create_output('vonmises_stress',shape=(num_elements))
+        vonmises_stress = self.create_output('vonmises_stress',shape=(num_elements)) # the global element stress vector
         for i, element_name in enumerate(options):
 
             if options[element_name]['type'] == 'tube': 
@@ -183,5 +181,5 @@ class Group(csdl.Model):
 
 
         
-        # compute the structural cg:
+        # compute the (undeformed) structural cg:
         self.add(Cg(options=options), name='Cg')

@@ -80,7 +80,6 @@ class SectionPropertiesBox(csdl.Model):
         Iy = (width*(height**3) - width_i*(height_i**3))/12
         J = (width*height*(height**2 + width**2)/12) - (width_i*height_i*(height_i**2 + width_i**2)/12)
 
-        #self.print_var(Iy)
 
         self.register_output(name+'A', A)
         self.register_output(name+'Iy', Iy)
