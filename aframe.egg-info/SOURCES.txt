@@ -1,13 +1,13 @@
 setup.py
 aframe/cg.py
 aframe/createrhs.py
+aframe/genbeam.py
 aframe/group.py
 aframe/localstiffness.py
 aframe/model.py
-aframe/run.py
+aframe/run_beam.py
 aframe/run_bridge.py
-aframe/sectionpropertiesbox.py
-aframe/sectionpropertiestube.py
+aframe/sectionproperties.py
 aframe/stress.py
 aframe.egg-info/PKG-INFO
 aframe.egg-info/SOURCES.txt
