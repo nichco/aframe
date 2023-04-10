@@ -1,11 +1,11 @@
 import numpy as np
 import csdl
 import python_csdl_backend
-from sectionpropertiestube import SectionPropertiesTube
-from localstiffness import LocalStiffness
-from model import Model
-from stress import StressTube
-from cg import Cg
+from aframe.sectionpropertiestube import SectionPropertiesTube
+from aframe.localstiffness import LocalStiffness
+from aframe.model import Model
+from aframe.stress import StressTube
+from aframe.cg import Cg
 
 
 
