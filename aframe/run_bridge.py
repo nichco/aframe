@@ -29,7 +29,7 @@ class Run(csdl.Model):
         # create the global loads vector
         loads = np.zeros((dim))
         f_id = node_id[3] # apply a force at node 3
-        loads[f_id*6 + 1] = 200000
+        loads[f_id*6 + 1] = 400000
 
         F = self.create_input('F',shape=(dim),val=loads)
 
@@ -209,7 +209,9 @@ if __name__ == '__main__':
 
     # plot the cg:
     cg = sim['cg']
+    cg_def = sim['cg_def']
     plt.scatter(cg[0],cg[1],color='blue',s=50,edgecolors='black')
+    plt.scatter(cg_def[0],cg_def[1],color='red',s=40,edgecolors='black')
 
 
     plt.xlim(-0.1,3.1)

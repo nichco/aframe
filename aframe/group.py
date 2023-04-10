@@ -97,7 +97,7 @@ class Group(csdl.Model):
         solve_res.declare_state(state='U', residual='R')
         solve_res.nonlinear_solver = csdl.NewtonSolver(
         solve_subsystems=False,
-        maxiter=1000,
+        maxiter=3000,
         iprint=False,
         )
         solve_res.linear_solver = csdl.ScipyKrylov()
