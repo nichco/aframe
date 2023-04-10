@@ -164,11 +164,22 @@ class Group(csdl.Model):
 
 
 
-        # perform a stress recovery
+        # perform a stress recovery:
         vonmises_stress = self.create_output('vonmises_stress',shape=(num_elements))
         for i, element_name in enumerate(options):
-            self.add(StressTube(options=options[element_name],name=element_name), name=element_name+'Stress')
-            vonmises_stress[i] = self.declare_variable(element_name+'s_vm')
+
+            if options[element_name]['type'] == 'tube': 
+                self.add(StressTube(options=options[element_name],name=element_name), name=element_name+'Stress')
+                vonmises_stress[i] = self.declare_variable(element_name+'s_vm')
+
+            elif options[element_name]['type'] == 'rect':
+                raise NotImplementedError('Error: stress recovery for rectangular beams is not implemented')
+            
+            elif options[element_name]['type'] == 'box':
+                raise NotImplementedError('Error: stress recovery for box beams is not implemented')
+            
+            else:
+                raise NotImplementedError('Error: stress recovery for [beam type] is not implemented')
 
 
         
