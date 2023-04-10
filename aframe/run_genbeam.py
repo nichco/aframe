@@ -38,6 +38,9 @@ class Run(csdl.Model):
             self.register_output(element_name+'node_b', node_b)
 
 
+        # generate the loads vector:
+
+
         
         # pre-process the options dictionary to get dim:
         node_list = [options[name]['nodes'][0] for name in options] + [options[name]['nodes'][1] for name in options]
