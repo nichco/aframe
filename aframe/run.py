@@ -50,7 +50,7 @@ if __name__ == '__main__':
     options[name]['nodes'] = [0,1] # node indices for [node_a, node_b]
     options[name]['node_a'] = [0,0,0,0,0,0] # node_a coordinates
     options[name]['node_b'] = [1,0,0,0,0,0] # node_b coordinates
-    options[name]['type'] = 'tube' # element type
+    options[name]['type'] = 'box' # element type
 
     name = 'element_2'
     options[name] = {}
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     options[name]['nodes'] = [1,2]
     options[name]['node_a'] = [1,0,0,0,0,0]
     options[name]['node_b'] = [2,0,0,0,0,0]
-    options[name]['type'] = 'tube'
+    options[name]['type'] = 'box'
 
     name = 'element_3'
     options[name] = {}
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     options[name]['nodes'] = [2,3]
     options[name]['node_a'] = [2,0,0,0,0,0]
     options[name]['node_b'] = [3,0,0,0,0,0]
-    options[name]['type'] = 'tube'
+    options[name]['type'] = 'box'
 
 
     bcond = {}
@@ -114,10 +114,11 @@ if __name__ == '__main__':
     ax.set_zlim(-0.4,0.1)
     plt.show()
 
-
+    """
     F = -1000
     L = 3
     E = 69E9
     I = sim['element_1Iy']
     dmax = F*(L**3)/(3*E*I)
     print('dmax: ',dmax)
+    """

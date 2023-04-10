@@ -46,8 +46,8 @@ class SectionPropertiesRect(csdl.Model):
 
         # Compute the area, area moments of inertia, and polar moment of inertia
         A = width*height
-        Iy = (width**3)*height/12
-        Iz = width*(height**3)/12
+        Iz = (width**3)*height/12
+        Iy = width*(height**3)/12
         J = width*height*(height**2 + width**2)/12
 
         self.register_output(name+'A', A)
@@ -67,7 +67,7 @@ class SectionPropertiesBox(csdl.Model):
         name = self.parameters['name']
 
         width = self.declare_variable(name+'width',val=0.1)
-        height = self.declare_variable(name+'height',val=0.1)
+        height = self.declare_variable(name+'height',val=0.25)
         t_web = self.declare_variable(name+'t_web',val=0.001)
         t_cap = self.declare_variable(name+'t_cap',val=0.001)
 
@@ -76,9 +76,11 @@ class SectionPropertiesBox(csdl.Model):
 
         # Compute the area, area moments of inertia, and polar moment of inertia
         A = width*height - width_i*height_i
-        Iy = ((width**3)*height - (width_i**3)*height_i)/12
-        Iz = (width*(height**3) - width_i*(height_i**3))/12
+        Iz = ((width**3)*height - (width_i**3)*height_i)/12
+        Iy = (width*(height**3) - width_i*(height_i**3))/12
         J = (width*height*(height**2 + width**2)/12) - (width_i*height_i*(height_i**2 + width_i**2)/12)
+
+        #self.print_var(Iy)
 
         self.register_output(name+'A', A)
         self.register_output(name+'Iy', Iy)

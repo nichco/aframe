@@ -108,7 +108,7 @@ class StressBox(csdl.Model):
         for point in range(4):
             x = x_coord[point]
             y = y_coord[point]
-            bend_stress[point] = (bend_moment_1*y/Iy) + (bend_moment_2*x/Iz) # need to check axes !!!!!!!!!!!!!
+            bend_stress[point] = (bend_moment_1*y/Iy) + (bend_moment_2*x/Iz)
 
         # take the maximum bending stress:
         s_bend = csdl.max(bend_stress)
