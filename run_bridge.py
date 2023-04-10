@@ -46,6 +46,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [0,1] # node indices for [node_a, node_b]
     options[name]['node_a'] = [0,0,0,0,0,0] # node_a coordinates
     options[name]['node_b'] = [0.5,1,0,0,0,0] # node_b coordinates
@@ -55,6 +56,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [0,2]
     options[name]['node_a'] = [0,0,0,0,0,0]
     options[name]['node_b'] = [1,0,0,0,0,0]
@@ -64,6 +66,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [1,2]
     options[name]['node_a'] = [0.5,1,0,0,0,0]
     options[name]['node_b'] = [1,0,0,0,0,0]
@@ -73,6 +76,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [1,3]
     options[name]['node_a'] = [0.5,1,0,0,0,0]
     options[name]['node_b'] = [1.5,1,0,0,0,0]
@@ -82,6 +86,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [2,3]
     options[name]['node_a'] = [1,0,0,0,0,0]
     options[name]['node_b'] = [1.5,1,0,0,0,0]
@@ -91,6 +96,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [2,4]
     options[name]['node_a'] = [1,0,0,0,0,0]
     options[name]['node_b'] = [2,0,0,0,0,0]
@@ -100,6 +106,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [3,4]
     options[name]['node_a'] = [1.5,1,0,0,0,0]
     options[name]['node_b'] = [2,0,0,0,0,0]
@@ -109,6 +116,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [3,5]
     options[name]['node_a'] = [1.5,1,0,0,0,0]
     options[name]['node_b'] = [2.5,1,0,0,0,0]
@@ -118,6 +126,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [4,5]
     options[name]['node_a'] = [2,0,0,0,0,0]
     options[name]['node_b'] = [2.5,1,0,0,0,0]
@@ -127,6 +136,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [4,6]
     options[name]['node_a'] = [2,0,0,0,0,0]
     options[name]['node_b'] = [3,0,0,0,0,0]
@@ -136,6 +146,7 @@ if __name__ == '__main__':
     options[name] = {}
     options[name]['E'] = 69E9
     options[name]['G'] = 26E9
+    options[name]['rho'] = 2700
     options[name]['nodes'] = [5,6]
     options[name]['node_a'] = [2.5,1,0,0,0,0]
     options[name]['node_b'] = [3,0,0,0,0,0]
@@ -196,9 +207,9 @@ if __name__ == '__main__':
 
     plt.arrow(1.5,1,0,0.2,width=0.04,color='red')
 
+    cg = sim['cg']
+    plt.scatter(cg[0],cg[1],color='blue',s=50,edgecolors='black')
 
-    #ax.set_xlim(0,3)
-    #ax.set_ylim(-1,1)
-    #ax.set_zlim(-0.1,0.1)
+
     plt.xlim(-0.1,3.1)
     plt.show()
