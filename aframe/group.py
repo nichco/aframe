@@ -5,28 +5,65 @@ from aframe.localstiffness import LocalStiffness
 from aframe.model import Model
 from aframe.stress import StressTube, StressBox
 from aframe.cg import Cg
+from aframe.globalloads import GlobalLoads
 
 
 
 class Group(csdl.Model):
     def initialize(self):
         self.parameters.declare('options')
+        self.parameters.declare('beams')
         self.parameters.declare('bcond')
     def define(self):
         options = self.parameters['options']
+        beams = self.parameters['beams']
         bcond = self.parameters['bcond']
 
 
+        # parse the beam dictionary to create the elemental options dictionary:
+        for beam_name in beams:
+            nodes = beams[beam_name]['nodes']
+            type = beams[beam_name]['type']
+            E, G, rho = beams[beam_name]['E'], beams[beam_name]['G'], beams[beam_name]['rho']
+            num_nodes = len(nodes)
+
+            mesh = self.declare_variable(beam_name+'mesh',shape=(num_nodes,6),val=0)
+            for i in range(num_nodes - 1):
+                element_name = beam_name + '_element_' + str(i)
+                options[element_name] = {}
+                # constant material properties and type:
+                options[element_name]['type'] = type
+                options[element_name]['E'], options[element_name]['G'], options[element_name]['rho'] = E, G, rho
+                # define the elemental start node and stop node from the node list:
+                options[element_name]['nodes'] = [nodes[i] , nodes[i+1]]
+                # compute the elemental start and stop node coordinates:
+                na = csdl.reshape(mesh[i,:], (6))
+                nb = csdl.reshape(mesh[i+1,:], (6))
+                # register the outputs:
+                self.register_output(element_name+'node_a', na)
+                self.register_output(element_name+'node_b', nb)
+
+
+
+
+
+
+
         # process the options dictionary to compute the total number of unique nodes:
-        node_list = [options[name]['nodes'][0] for name in options] + [options[name]['nodes'][1] for name in options]
-        node_list = [*set(node_list)]
+        node_list = [*set([options[name]['nodes'][0] for name in options] + [options[name]['nodes'][1] for name in options])]
         num_unique_nodes = len(node_list)
         num_elements = len(options)
         dim = num_unique_nodes*6
 
-
         # create a dictionary that contains the nodes and the node index
         node_id = {node_list[i]: i for i in range(num_unique_nodes)}
+
+
+
+
+        # create the global loads vector:
+        self.add(GlobalLoads(options=options,beams=beams,bcond=bcond,node_id=node_id), name='GlobalLoads')
+        F = self.declare_variable('F',shape=(dim))
 
 
 
@@ -35,14 +72,15 @@ class Group(csdl.Model):
         for element_name in options:
             if options[element_name]['type'] == 'tube': 
                 self.add(SectionPropertiesTube(name=element_name), name=element_name+'SectionPropertiesTube')
-
             elif options[element_name]['type'] == 'box': 
                 self.add(SectionPropertiesBox(name=element_name), name=element_name+'SectionPropertiesBox')
-
             elif options[element_name]['type'] == 'rect': 
                 self.add(SectionPropertiesRect(name=element_name), name=element_name+'SectionPropertiesRect')
-
             else: raise NotImplementedError('Error: type for' + element_name + 'is not implemented')
+
+
+
+
 
 
         # compute the local stiffness matrix for each element:
@@ -50,6 +88,8 @@ class Group(csdl.Model):
             self.add(LocalStiffness(options=options[element_name],name=element_name,dim=dim,node_id=node_id), name=element_name+'LocalStiffness')
 
         
+
+
         # construct the global stiffness matrix:
         helper = self.create_output('helper',shape=(num_elements,dim,dim),val=0)
         for i, element_name in enumerate(options):
@@ -82,14 +122,13 @@ class Group(csdl.Model):
                 mask_eye[i,i] = 1*one
 
 
-
+        # modify the global stiffness matrix with boundary conditions:
+        # first remove the row/column with a boundary condition, then add a 1:
         K = csdl.transpose(csdl.matmat(mask, csdl.transpose(csdl.matmat(mask,sum_k)))) + mask_eye
         self.register_output('K', K)
 
         
 
-        # declare the global loads vector
-        F = self.declare_variable('F',shape=(dim))
 
 
         # solve the linear system
@@ -97,7 +136,7 @@ class Group(csdl.Model):
         solve_res.declare_state(state='U', residual='R')
         solve_res.nonlinear_solver = csdl.NewtonSolver(
         solve_subsystems=False,
-        maxiter=3000,
+        maxiter=500,
         iprint=False,
         )
         solve_res.linear_solver = csdl.ScipyKrylov()

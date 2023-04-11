@@ -16,63 +16,21 @@ class Run(csdl.Model):
         bcond = self.parameters['bcond']
         beams = self.parameters['beams']
 
-        
 
         for beam_name in beams:
             nodes = beams[beam_name]['nodes']
-            type = beams[beam_name]['type']
-            E, G, rho = beams[beam_name]['E'], beams[beam_name]['G'], beams[beam_name]['rho']
             num_nodes = len(nodes)
 
-            mesh = self.declare_variable(beam_name+'mesh',shape=(num_nodes,6),val=0)
-            self.register_output(beam_name+'mesh2',1*mesh)
+            dummy_load = np.zeros((num_nodes,6))
+            dummy_load[:,2] = 10 # z-force at every node
 
-            #start = self.declare_variable(beam_name+'start',shape=(6),val=[0,0,0,0,0,0])
-            #stop = self.declare_variable(beam_name+'stop',shape=(6),val=[10,0,0,0,0,0])
-            
-            for i in range(num_nodes - 1):
-                element_name = beam_name + '_element_' + str(i)
-                options[element_name] = {}
-                # constant material properties:
-                options[element_name]['type'] = type
-                options[element_name]['E'], options[element_name]['G'], options[element_name]['rho'] = E, G, rho
-                # define the elemental start node and stop node from the node list:
-                options[element_name]['nodes'] = [nodes[i] , nodes[i+1]]
-                # compute the elemental start and stop node coordinates:
-                #ds = (stop - start)/(len(nodes) - 1)
-                #node_a = start + ds*i
-                #node_b = start + ds*(i + 1)
-
-                #self.print_var(node_b)
-
-                na = csdl.reshape(mesh[i,:], (6))
-                nb = csdl.reshape(mesh[i+1,:], (6))
-                self.print_var(nb)
-
-                # register the outputs:
-                self.register_output(element_name+'node_a', na)
-                self.register_output(element_name+'node_b', nb)
-
-        
-        # generate the loads vector(s) (for each beam if there are multiple beams):
-        #beam_name = 'beam1'
-        #loads = self.declare_variable(beam_name+'loads',shape=(6,len(nodes)))
+            #self.create_input(beam_name+'mesh',shape=(num_nodes,6),val=0)
+            self.create_input(beam_name+'loads',shape=(num_nodes,6),val=dummy_load)
 
 
         
-        # pre-process the options dictionary to get dim:
-        node_list = [options[name]['nodes'][0] for name in options] + [options[name]['nodes'][1] for name in options]
-        node_list = [*set(node_list)]
-        num_unique_nodes = len(node_list)
-        dim = num_unique_nodes*6
-
-        # create the global loads vector
-        loads = np.zeros((dim))
-        loads[dim-4] = -200
-        F = self.create_input('F',shape=(dim),val=loads)
-
         # solve the beam group:
-        self.add(Group(options=options,bcond=bcond), name='Group')
+        self.add(Group(options=options,beams=beams,bcond=bcond), name='Group')
         
         
 
@@ -89,9 +47,9 @@ if __name__ == '__main__':
     bcond['root1']['node'] = 0
     bcond['root1']['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
 
-    bcond['root2'] = {}
-    bcond['root2']['node'] = 10
-    bcond['root2']['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
+    #bcond['root2'] = {}
+    #bcond['root2']['node'] = 10
+    #bcond['root2']['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
 
 
     name = 'beam_1'
@@ -107,7 +65,7 @@ if __name__ == '__main__':
 
     name = 'beam_2'
     beams[name] = {}
-    beams[name]['nodes'] = [10,11,12,13,14,15,16,17,18,19]
+    beams[name]['nodes'] = [10,11,12,13,14,15,16,17,18,9]
     beams[name]['type'] = 'tube'
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
