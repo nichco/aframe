@@ -74,7 +74,20 @@ if __name__ == '__main__':
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
+    """
+    beams[name]['ab'] = []
 
+
+    name = 'b2'
+    beams[name] = {}
+    beams[name]['nodes'] = [8,10,11,12]
+    beams[name]['E'] = 69E9
+    beams[name]['G'] = 26E9
+    beams[name]['rho'] = 2700
+    beams[name]['type'] = 'tube'
+
+    beams[name]['ab'] = []
+    """
 
     bcond['root1'] = {}
     bcond['root1']['node'] = 0
