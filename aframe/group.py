@@ -58,6 +58,9 @@ class Group(csdl.Model):
         # create a dictionary that contains the nodes and the node index
         node_id = {node_list[i]: i for i in range(num_unique_nodes)}
 
+        # create a list of unique bc nodes:
+        bc_list = [*set([bcond[bc_name]['node'] for bc_name in bcond])]
+
 
 
 
@@ -109,7 +112,7 @@ class Group(csdl.Model):
         # boundary conditions
         bc_id = []
         for node, id in node_id.items():
-            # check if the current node has a boundary condition:
+            
             for bc_name in bcond:
                 if bcond[bc_name]['node'] == node:
                     # iterate over 'fdim' to see which dof's are constrained:
@@ -117,6 +120,7 @@ class Group(csdl.Model):
                         if fdim == 1:
                             # add the constrained dof ID to the bc_id list:
                             bc_id.append(id*6 + i)
+            
 
 
         mask = self.create_output('mask',shape=(dim,dim),val=np.eye(dim))
