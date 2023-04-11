@@ -11,15 +11,15 @@ from aframe.globalloads import GlobalLoads
 
 class Group(csdl.Model):
     def initialize(self):
-        self.parameters.declare('options')
-        self.parameters.declare('beams')
-        self.parameters.declare('bcond')
+        self.parameters.declare('options',default={})
+        self.parameters.declare('beams',default={})
+        self.parameters.declare('bcond',default={})
     def define(self):
         options = self.parameters['options']
         beams = self.parameters['beams']
         bcond = self.parameters['bcond']
 
-
+        """
         # parse the beam dictionary to create the elemental options dictionary:
         for beam_name in beams:
             nodes = beams[beam_name]['nodes']
@@ -42,7 +42,7 @@ class Group(csdl.Model):
                 # register the outputs:
                 self.register_output(element_name+'node_a', na)
                 self.register_output(element_name+'node_b', nb)
-
+        """
 
 
 
@@ -62,8 +62,15 @@ class Group(csdl.Model):
 
 
         # create the global loads vector:
-        self.add(GlobalLoads(options=options,beams=beams,bcond=bcond,node_id=node_id), name='GlobalLoads')
-        F = self.declare_variable('F',shape=(dim))
+        """
+        self.add(GlobalLoads(options=options,
+                             beams=beams,
+                             bcond=bcond,
+                             node_id=node_id,
+                             num_unique_nodes=num_unique_nodes
+                             ), name='GlobalLoads')
+        """
+        F = self.declare_variable('F',shape=(dim),val=0)
 
 
 
@@ -136,7 +143,7 @@ class Group(csdl.Model):
         solve_res.declare_state(state='U', residual='R')
         solve_res.nonlinear_solver = csdl.NewtonSolver(
         solve_subsystems=False,
-        maxiter=500,
+        maxiter=1000,
         iprint=False,
         )
         solve_res.linear_solver = csdl.ScipyKrylov()

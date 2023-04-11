@@ -10,23 +10,22 @@ class Run(csdl.Model):
     def initialize(self):
         self.parameters.declare('options',default={})
         self.parameters.declare('bcond',default={})
-        self.parameters.declare('beams',default={})
     def define(self):
         options = self.parameters['options']
         bcond = self.parameters['bcond']
-        beams = self.parameters['beams']
 
-
+        # need to write code to autogenerate the options dict:
+        """
         for beam_name in beams:
             nodes = beams[beam_name]['nodes']
             num_nodes = len(nodes)
 
             dummy_load = np.zeros((num_nodes,6))
-            dummy_load[:,2] = 10 # z-force at every node
+            dummy_load[:,2] = 15 # z-force at every node
 
             #self.create_input(beam_name+'mesh',shape=(num_nodes,6),val=0)
             self.create_input(beam_name+'loads',shape=(num_nodes,6),val=dummy_load)
-
+        """
 
         
         # solve the beam group:
