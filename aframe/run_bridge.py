@@ -31,7 +31,7 @@ class Run(csdl.Model):
         f_id = node_id[3] # apply a force at node 3
         loads[f_id*6 + 1] = 400000
 
-        F = self.create_input('F',shape=(dim),val=loads)
+        self.create_input('F',shape=(dim),val=loads)
 
         # solve the beam group:
         self.add(Group(options=options,bcond=bcond), name='Group')

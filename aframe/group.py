@@ -62,14 +62,14 @@ class Group(csdl.Model):
 
 
         # create the global loads vector:
-        """
-        self.add(GlobalLoads(options=options,
-                             beams=beams,
-                             bcond=bcond,
-                             node_id=node_id,
-                             num_unique_nodes=num_unique_nodes
-                             ), name='GlobalLoads')
-        """
+        if beams:
+            self.add(GlobalLoads(options=options,
+                                beams=beams,
+                                bcond=bcond,
+                                node_id=node_id,
+                                num_unique_nodes=num_unique_nodes
+                                ), name='GlobalLoads')
+        
         F = self.declare_variable('F',shape=(dim),val=0)
 
 

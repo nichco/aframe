@@ -9,50 +9,52 @@ from aframe.group import Group
 class Run(csdl.Model):
     def initialize(self):
         self.parameters.declare('options',default={})
+        self.parameters.declare('beams',default={})
         self.parameters.declare('bcond',default={})
     def define(self):
         options = self.parameters['options']
+        beams = self.parameters['beams']
         bcond = self.parameters['bcond']
 
-        # need to write code to autogenerate the options dict:
-        """
+
+        # NOTE: beam_nodes, mesh, and loads must be linearly correlated
         for beam_name in beams:
-            nodes = beams[beam_name]['nodes']
-            num_nodes = len(nodes)
+            beam_nodes = beams[beam_name]['nodes']
+            num_beam_nodes = len(beam_nodes)
+            num_elements = num_beam_nodes - 1
+            E, G, rho, type = beams[beam_name]['E'], beams[beam_name]['G'], beams[beam_name]['rho'], beams[beam_name]['type']
 
-            dummy_load = np.zeros((num_nodes,6))
-            dummy_load[:,2] = 15 # z-force at every node
+            dummy_mesh = np.zeros((num_beam_nodes,6))
+            dummy_mesh[:,0] = np.linspace(0,10,num_beam_nodes)
 
-            #self.create_input(beam_name+'mesh',shape=(num_nodes,6),val=0)
-            self.create_input(beam_name+'loads',shape=(num_nodes,6),val=dummy_load)
-        """
-        E = 69E9
-        G = 26E9
-        rho = 2700
-        type = 'tube'
+            # create an options dictionary entry for each element:
+            for i in range(num_elements):
+                element_name = beam_name + '_element_' + str(i)
+                options[element_name] = {}
+                options[element_name]['E'] = E
+                options[element_name]['G'] = G
+                options[element_name]['rho'] = rho
+                options[element_name]['type'] = type
+                options[element_name]['nodes'] = [beam_nodes[i], beam_nodes[i+1]]
 
-        num_nodes = 10
-        dummy_mesh = np.zeros((num_nodes,6))
-        dummy_mesh[:,0] = np.linspace(0,10,num_nodes)
+                na = dummy_mesh[i,:]
+                nb = dummy_mesh[i+1,:]
 
-        for i in range(num_nodes - 1):
-            element_name = 'element_' + str(i)
-            options[element_name] = {}
-            options[element_name]['E'] = E
-            options[element_name]['G'] = G
-            options[element_name]['rho'] = rho
-            options[element_name]['type'] = type
-            options[element_name]['nodes'] = [i, i+1]
+                self.create_input(element_name+'node_a',shape=(6),val=na)
+                self.create_input(element_name+'node_b',shape=(6),val=nb)
 
-            na = dummy_mesh[i,:]
-            nb = dummy_mesh[i+1,:]
 
-            self.create_input(element_name+'node_a',shape=(6),val=na)
-            self.create_input(element_name+'node_b',shape=(6),val=nb)
+
+        dummy_loads = np.zeros((10,6))
+        dummy_loads[-1,2] = 100
+        self.create_input('b1loads',shape=(10,6),val=dummy_loads)
+
+
+
 
         
         # solve the beam group:
-        self.add(Group(options=options,bcond=bcond), name='Group')
+        self.add(Group(options=options,beams=beams,bcond=bcond), name='Group')
         
         
 
@@ -63,7 +65,16 @@ class Run(csdl.Model):
 
 if __name__ == '__main__':
 
-    options, bcond= {}, {}
+    options, bcond, beams = {}, {}, {}
+
+    name = 'b1'
+    beams[name] = {}
+    beams[name]['nodes'] = [0,1,2,3,4,5,6,7,8,9]
+    beams[name]['E'] = 69E9
+    beams[name]['G'] = 26E9
+    beams[name]['rho'] = 2700
+    beams[name]['type'] = 'tube'
+
 
     bcond['root1'] = {}
     bcond['root1']['node'] = 0
@@ -72,7 +83,7 @@ if __name__ == '__main__':
 
 
 
-    sim = python_csdl_backend.Simulator(Run(options=options,bcond=bcond))
+    sim = python_csdl_backend.Simulator(Run(options=options,beams=beams,bcond=bcond))
     sim.run()
 
     
