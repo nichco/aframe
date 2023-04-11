@@ -140,7 +140,6 @@ if __name__ == '__main__':
     cg_def = sim['cg_def']
     ax.scatter(cg[0],cg[1],cg[2],color='blue',s=50,edgecolors='black')
     ax.scatter(cg_def[0],cg_def[1],cg_def[2],color='red',s=50,edgecolors='black')
-    #ax.text(cg[0], cg[1], cg[2]-0.05, s='CG', fontsize=10)
 
 
     plt.show()
