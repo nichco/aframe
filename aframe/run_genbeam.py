@@ -16,6 +16,23 @@ class Run(csdl.Model):
         beams = self.parameters['beams']
         bcond = self.parameters['bcond']
 
+        
+        # dummy mesh generation code:
+        for beam_name in beams:
+            beam_nodes = beams[beam_name]['nodes']
+            num_beam_nodes = len(beam_nodes)
+            # get the beam start/stop coordinates
+            a = self.create_input(beam_name+'a',shape=(6),val=beams[beam_name]['a'])
+            b = self.create_input(beam_name+'b',shape=(6),val=beams[beam_name]['b'])
+
+            ds = (b - a)/(num_beam_nodes - 1)
+
+            mesh = self.create_output(beam_name+'mesh',shape=(num_beam_nodes,6),val=0)
+            for i in range(num_beam_nodes):
+                node_i = a + ds*i
+                mesh[i,:] = csdl.reshape(node_i, (1,6))
+        
+
 
         # NOTE: beam_nodes, mesh, and loads must be linearly correlated
         for beam_name in beams:
@@ -24,8 +41,9 @@ class Run(csdl.Model):
             num_elements = num_beam_nodes - 1
             E, G, rho, type = beams[beam_name]['E'], beams[beam_name]['G'], beams[beam_name]['rho'], beams[beam_name]['type']
 
-            dummy_mesh = np.zeros((num_beam_nodes,6))
-            dummy_mesh[:,0] = np.linspace(0,10,num_beam_nodes)
+            #dummy_mesh = np.zeros((num_beam_nodes,6))
+            #dummy_mesh[:,0] = np.linspace(0,10,num_beam_nodes)
+            dummy_mesh = self.declare_variable(beam_name+'mesh',shape=(num_beam_nodes,6))
 
             # create an options dictionary entry for each element:
             for i in range(num_elements):
@@ -37,11 +55,13 @@ class Run(csdl.Model):
                 options[element_name]['type'] = type
                 options[element_name]['nodes'] = [beam_nodes[i], beam_nodes[i+1]]
 
-                na = dummy_mesh[i,:]
-                nb = dummy_mesh[i+1,:]
+                na = csdl.reshape(dummy_mesh[i,:], (6))
+                nb = csdl.reshape(dummy_mesh[i+1,:], (6))
 
-                self.create_input(element_name+'node_a',shape=(6),val=na)
-                self.create_input(element_name+'node_b',shape=(6),val=nb)
+                #self.create_input(element_name+'node_a',shape=(6),val=na)
+                #self.create_input(element_name+'node_b',shape=(6),val=nb)
+                self.register_output(element_name+'node_a',na)
+                self.register_output(element_name+'node_b',nb)
 
 
 
@@ -74,20 +94,22 @@ if __name__ == '__main__':
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
-    """
-    beams[name]['ab'] = []
+    
+    beams[name]['a'] = [0,0,0,0,0,0]
+    beams[name]['b'] = [10,0,0,0,0,0]
 
-
+    
     name = 'b2'
     beams[name] = {}
-    beams[name]['nodes'] = [8,10,11,12]
+    beams[name]['nodes'] = [9,10,11,12]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
 
-    beams[name]['ab'] = []
-    """
+    beams[name]['a'] = [10,0,0,0,0,0]
+    beams[name]['b'] = [10,1,0,0,0,0]
+    
 
     bcond['root1'] = {}
     bcond['root1']['node'] = 0
