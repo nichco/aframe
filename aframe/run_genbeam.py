@@ -44,34 +44,6 @@ class Run(csdl.Model):
                 self.register_output(element_name+'node_a', node_a)
                 self.register_output(element_name+'node_b', node_b)
 
-        """
-        # generate the beam mesh(es):
-        beam_name = 'beam_1'
-        start = self.declare_variable(beam_name+'start',shape=(6),val=[0,0,0,0,0,0])
-        stop = self.declare_variable(beam_name+'stop',shape=(6),val=[10,0,0,0,0,0])
-        nodes = beams[beam_name]['nodes']
-
-        type = beams[beam_name]['type']
-        E = beams[beam_name]['E']
-        G = beams[beam_name]['G']
-        rho = beams[beam_name]['rho']
-        
-        for i in range(len(nodes) - 1):
-            element_name = 'element_' + str(i)
-            options[element_name] = {}
-            # constant material properties:
-            options[element_name]['type'] = type
-            options[element_name]['E'], options[element_name]['G'], options[element_name]['rho'] = E, G, rho
-            # define the elemental start node and stop node from the node list:
-            options[element_name]['nodes'] = [nodes[i] , nodes[i+1]]
-            # compute the elemental start and stop node coordinates:
-            ds = (stop - start)/len(nodes)
-            node_a = start + ds*i
-            node_b = start + ds*(i + 1)
-            # register the outputs:
-            self.register_output(element_name+'node_a', node_a)
-            self.register_output(element_name+'node_b', node_b)
-        """
         
         # generate the loads vector(s) (for each beam if there are multiple beams):
         #beam_name = 'beam1'
