@@ -120,7 +120,7 @@ class Group(csdl.Model):
                         if fdim == 1:
                             # add the constrained dof ID to the bc_id list:
                             bc_id.append(id*6 + i)
-            
+        
 
 
         mask = self.create_output('mask',shape=(dim,dim),val=np.eye(dim))
