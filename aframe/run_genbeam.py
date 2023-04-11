@@ -21,14 +21,16 @@ class Run(csdl.Model):
         for beam_name in beams:
             nodes = beams[beam_name]['nodes']
             type = beams[beam_name]['type']
-            E = beams[beam_name]['E']
-            G = beams[beam_name]['G']
-            rho = beams[beam_name]['rho']
+            E, G, rho = beams[beam_name]['E'], beams[beam_name]['G'], beams[beam_name]['rho']
+            num_nodes = len(nodes)
 
-            start = self.declare_variable(beam_name+'start',shape=(6),val=[0,0,0,0,0,0])
-            stop = self.declare_variable(beam_name+'stop',shape=(6),val=[10,0,0,0,0,0])
+            mesh = self.declare_variable(beam_name+'mesh',shape=(num_nodes,6),val=0)
+            self.register_output(beam_name+'mesh2',1*mesh)
+
+            #start = self.declare_variable(beam_name+'start',shape=(6),val=[0,0,0,0,0,0])
+            #stop = self.declare_variable(beam_name+'stop',shape=(6),val=[10,0,0,0,0,0])
             
-            for i in range(len(nodes) - 1):
+            for i in range(num_nodes - 1):
                 element_name = beam_name + '_element_' + str(i)
                 options[element_name] = {}
                 # constant material properties:
@@ -37,12 +39,19 @@ class Run(csdl.Model):
                 # define the elemental start node and stop node from the node list:
                 options[element_name]['nodes'] = [nodes[i] , nodes[i+1]]
                 # compute the elemental start and stop node coordinates:
-                ds = (stop - start)/len(nodes)
-                node_a = start + ds*i
-                node_b = start + ds*(i + 1)
+                #ds = (stop - start)/(len(nodes) - 1)
+                #node_a = start + ds*i
+                #node_b = start + ds*(i + 1)
+
+                #self.print_var(node_b)
+
+                na = csdl.reshape(mesh[i,:], (6))
+                nb = csdl.reshape(mesh[i+1,:], (6))
+                self.print_var(nb)
+
                 # register the outputs:
-                self.register_output(element_name+'node_a', node_a)
-                self.register_output(element_name+'node_b', node_b)
+                self.register_output(element_name+'node_a', na)
+                self.register_output(element_name+'node_b', nb)
 
         
         # generate the loads vector(s) (for each beam if there are multiple beams):
@@ -93,6 +102,9 @@ if __name__ == '__main__':
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
 
+    b1mesh = np.zeros((len(beams[name]['nodes']),6))
+    b1mesh[:,0] = np.linspace(0,10,len(beams[name]['nodes']))
+
     name = 'beam_2'
     beams[name] = {}
     beams[name]['nodes'] = [10,11,12,13,14,15,16,17,18,19]
@@ -105,12 +117,15 @@ if __name__ == '__main__':
 
 
     sim = python_csdl_backend.Simulator(Run(options=options,bcond=bcond,beams=beams))
+    sim['beam_1mesh'] = b1mesh
+    sim['beam_2mesh'] = b1mesh
+
     sim.run()
 
     
     U = sim['U']
     vonmises_stress = sim['vonmises_stress']
-    print(vonmises_stress)
+    #print(vonmises_stress)
 
 
     coord = sim['coord']
