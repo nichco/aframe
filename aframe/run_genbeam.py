@@ -26,10 +26,33 @@ class Run(csdl.Model):
             #self.create_input(beam_name+'mesh',shape=(num_nodes,6),val=0)
             self.create_input(beam_name+'loads',shape=(num_nodes,6),val=dummy_load)
         """
+        E = 69E9
+        G = 26E9
+        rho = 2700
+        type = 'tube'
+
+        num_nodes = 10
+        dummy_mesh = np.zeros((num_nodes,6))
+        dummy_mesh[:,0] = np.linspace(0,10,num_nodes)
+
+        for i in range(num_nodes - 1):
+            element_name = 'element_' + str(i)
+            options[element_name] = {}
+            options[element_name]['E'] = E
+            options[element_name]['G'] = G
+            options[element_name]['rho'] = rho
+            options[element_name]['type'] = type
+            options[element_name]['nodes'] = [i, i+1]
+
+            na = dummy_mesh[i,:]
+            nb = dummy_mesh[i+1,:]
+
+            self.create_input(element_name+'node_a',shape=(6),val=na)
+            self.create_input(element_name+'node_b',shape=(6),val=nb)
 
         
         # solve the beam group:
-        self.add(Group(options=options,beams=beams,bcond=bcond), name='Group')
+        self.add(Group(options=options,bcond=bcond), name='Group')
         
         
 
@@ -40,43 +63,16 @@ class Run(csdl.Model):
 
 if __name__ == '__main__':
 
-    options, bcond, beams = {}, {}, {}
+    options, bcond= {}, {}
 
     bcond['root1'] = {}
     bcond['root1']['node'] = 0
     bcond['root1']['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
 
-    #bcond['root2'] = {}
-    #bcond['root2']['node'] = 10
-    #bcond['root2']['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
-
-
-    name = 'beam_1'
-    beams[name] = {}
-    beams[name]['nodes'] = [0,1,2,3,4,5,6,7,8,9]
-    beams[name]['type'] = 'tube'
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-
-    b1mesh = np.zeros((len(beams[name]['nodes']),6))
-    b1mesh[:,0] = np.linspace(0,10,len(beams[name]['nodes']))
-
-    name = 'beam_2'
-    beams[name] = {}
-    beams[name]['nodes'] = [10,11,12,13,14,15,16,17,18,9]
-    beams[name]['type'] = 'tube'
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
 
 
 
-
-    sim = python_csdl_backend.Simulator(Run(options=options,bcond=bcond,beams=beams))
-    sim['beam_1mesh'] = b1mesh
-    sim['beam_2mesh'] = b1mesh
-
+    sim = python_csdl_backend.Simulator(Run(options=options,bcond=bcond))
     sim.run()
 
     
