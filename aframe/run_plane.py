@@ -32,9 +32,10 @@ class Run(csdl.Model):
 
 
 
-        dummy_loads = np.zeros((21,6))
+        dummy_loads = np.zeros((8,6))
         dummy_loads[:,2] = 10
-        self.create_input('wingloads',shape=(21,6),val=dummy_loads)
+        self.create_input('lwingloads',shape=(8,6),val=dummy_loads)
+        self.create_input('rwingloads',shape=(8,6),val=dummy_loads)
 
 
         # solve the beam group:
@@ -50,34 +51,74 @@ if __name__ == '__main__':
 
     options, bcond, beams = {}, {}, {}
 
-    name = 'wing'
+    name = 'lwing'
     beams[name] = {}
-    beams[name]['nodes'] = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    beams[name]['nodes'] = [0,1,2,3,4,5,6,7]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
     beams[name]['a'] = [-38,14,0,0,0,0]
+    beams[name]['b'] = [-7,14,0,0,0,0]
+
+    name = 'cwing'
+    beams[name] = {}
+    beams[name]['nodes'] = [7,8,9,10,11,12,13]
+    beams[name]['E'] = 69E9
+    beams[name]['G'] = 26E9
+    beams[name]['rho'] = 2700
+    beams[name]['type'] = 'tube'
+    beams[name]['a'] = [-7,14,0,0,0,0]
+    beams[name]['b'] = [7,14,0,0,0,0]
+
+    name = 'rwing'
+    beams[name] = {}
+    beams[name]['nodes'] = [13,14,15,16,17,18,19,20]
+    beams[name]['E'] = 69E9
+    beams[name]['G'] = 26E9
+    beams[name]['rho'] = 2700
+    beams[name]['type'] = 'tube'
+    beams[name]['a'] = [7,14,0,0,0,0]
     beams[name]['b'] = [38,14,0,0,0,0]
 
-    name = 'lfuse'
+    name = 'flfuse'
     beams[name] = {}
-    beams[name]['nodes'] = [21,22,23,7,24,25,26,27]
+    beams[name]['nodes'] = [21,22,23,7]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
     beams[name]['a'] = [-7,0,0,0,0,0]
+    beams[name]['b'] = [-7,14,0,0,0,0]
+
+    name = 'blfuse'
+    beams[name] = {}
+    beams[name]['nodes'] = [7,24,25,26,27]
+    beams[name]['E'] = 69E9
+    beams[name]['G'] = 26E9
+    beams[name]['rho'] = 2700
+    beams[name]['type'] = 'tube'
+    beams[name]['a'] = [-7,14,0,0,0,0]
     beams[name]['b'] = [-7,28,0,0,0,0]
 
-    name = 'rfuse'
+    name = 'frfuse'
     beams[name] = {}
-    beams[name]['nodes'] = [28,29,30,13,31,32,33,34]
+    beams[name]['nodes'] = [28,29,30,13]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
     beams[name]['a'] = [7,0,0,0,0,0]
+    beams[name]['b'] = [7,14,0,0,0,0]
+
+    name = 'brfuse'
+    beams[name] = {}
+    beams[name]['nodes'] = [13,31,32,33,34]
+    beams[name]['E'] = 69E9
+    beams[name]['G'] = 26E9
+    beams[name]['rho'] = 2700
+    beams[name]['type'] = 'tube'
+    beams[name]['a'] = [7,14,0,0,0,0]
     beams[name]['b'] = [7,28,0,0,0,0]
 
 
