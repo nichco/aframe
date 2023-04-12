@@ -44,6 +44,35 @@ class Group(csdl.Model):
                 self.register_output(element_name+'node_b', nb)
         """
 
+        # NOTE: beam_nodes, mesh, and loads must be linearly correlated
+        for beam_name in beams:
+            beam_nodes = beams[beam_name]['nodes']
+            num_beam_nodes = len(beam_nodes)
+            num_elements = num_beam_nodes - 1
+            E, G, rho, type = beams[beam_name]['E'], beams[beam_name]['G'], beams[beam_name]['rho'], beams[beam_name]['type']
+
+            #dummy_mesh = np.zeros((num_beam_nodes,6))
+            #dummy_mesh[:,0] = np.linspace(0,10,num_beam_nodes)
+            dummy_mesh = self.declare_variable(beam_name+'mesh',shape=(num_beam_nodes,6))
+
+            # create an options dictionary entry for each element:
+            for i in range(num_elements):
+                element_name = beam_name + '_element_' + str(i)
+                options[element_name] = {}
+                options[element_name]['E'] = E
+                options[element_name]['G'] = G
+                options[element_name]['rho'] = rho
+                options[element_name]['type'] = type
+                options[element_name]['nodes'] = [beam_nodes[i], beam_nodes[i+1]]
+
+                na = csdl.reshape(dummy_mesh[i,:], (6))
+                nb = csdl.reshape(dummy_mesh[i+1,:], (6))
+
+                #self.create_input(element_name+'node_a',shape=(6),val=na)
+                #self.create_input(element_name+'node_b',shape=(6),val=nb)
+                self.register_output(element_name+'node_a',na)
+                self.register_output(element_name+'node_b',nb)
+
 
 
 
@@ -149,6 +178,7 @@ class Group(csdl.Model):
         solve_subsystems=False,
         maxiter=1000,
         iprint=False,
+        atol=1E-5,
         )
         solve_res.linear_solver = csdl.ScipyKrylov()
 
