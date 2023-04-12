@@ -19,31 +19,8 @@ class Group(csdl.Model):
         beams = self.parameters['beams']
         bcond = self.parameters['bcond']
 
-        """
+        
         # parse the beam dictionary to create the elemental options dictionary:
-        for beam_name in beams:
-            nodes = beams[beam_name]['nodes']
-            type = beams[beam_name]['type']
-            E, G, rho = beams[beam_name]['E'], beams[beam_name]['G'], beams[beam_name]['rho']
-            num_nodes = len(nodes)
-
-            mesh = self.declare_variable(beam_name+'mesh',shape=(num_nodes,6),val=0)
-            for i in range(num_nodes - 1):
-                element_name = beam_name + '_element_' + str(i)
-                options[element_name] = {}
-                # constant material properties and type:
-                options[element_name]['type'] = type
-                options[element_name]['E'], options[element_name]['G'], options[element_name]['rho'] = E, G, rho
-                # define the elemental start node and stop node from the node list:
-                options[element_name]['nodes'] = [nodes[i] , nodes[i+1]]
-                # compute the elemental start and stop node coordinates:
-                na = csdl.reshape(mesh[i,:], (6))
-                nb = csdl.reshape(mesh[i+1,:], (6))
-                # register the outputs:
-                self.register_output(element_name+'node_a', na)
-                self.register_output(element_name+'node_b', nb)
-        """
-
         # NOTE: beam_nodes, mesh, and loads must be linearly correlated
         for beam_name in beams:
             beam_nodes = beams[beam_name]['nodes']
@@ -51,8 +28,6 @@ class Group(csdl.Model):
             num_elements = num_beam_nodes - 1
             E, G, rho, type = beams[beam_name]['E'], beams[beam_name]['G'], beams[beam_name]['rho'], beams[beam_name]['type']
 
-            #dummy_mesh = np.zeros((num_beam_nodes,6))
-            #dummy_mesh[:,0] = np.linspace(0,10,num_beam_nodes)
             dummy_mesh = self.declare_variable(beam_name+'mesh',shape=(num_beam_nodes,6))
 
             # create an options dictionary entry for each element:
@@ -68,8 +43,6 @@ class Group(csdl.Model):
                 na = csdl.reshape(dummy_mesh[i,:], (6))
                 nb = csdl.reshape(dummy_mesh[i+1,:], (6))
 
-                #self.create_input(element_name+'node_a',shape=(6),val=na)
-                #self.create_input(element_name+'node_b',shape=(6),val=nb)
                 self.register_output(element_name+'node_a',na)
                 self.register_output(element_name+'node_b',nb)
 
@@ -86,10 +59,6 @@ class Group(csdl.Model):
 
         # create a dictionary that contains the nodes and the node index
         node_id = {node_list[i]: i for i in range(num_unique_nodes)}
-
-        # create a list of unique bc nodes:
-        bc_list = [*set([bcond[bc_name]['node'] for bc_name in bcond])]
-
 
 
 
@@ -138,6 +107,7 @@ class Group(csdl.Model):
         sum_k = csdl.sum(helper, axes=(0, ))
 
 
+
         # boundary conditions
         bc_id = []
         for node, id in node_id.items():
@@ -157,15 +127,11 @@ class Group(csdl.Model):
         zero = self.create_input('zero',shape=(1,1),val=0)
         one = self.create_input('one',shape=(1,1),val=1)
         for i in range(dim):
-            if i in bc_id: 
-                mask[i,i] = 1*zero
-                mask_eye[i,i] = 1*one
+            if i in bc_id: mask[i,i], mask_eye[i,i] = 1*zero, 1*one
 
 
         # modify the global stiffness matrix with boundary conditions:
         # first remove the row/column with a boundary condition, then add a 1:
-        #K = csdl.transpose(csdl.matmat(mask, csdl.transpose(csdl.matmat(mask,sum_k)))) + mask_eye
-
         K = csdl.matmat(csdl.matmat(mask, sum_k), mask) + mask_eye
         self.register_output('K', K)
 
