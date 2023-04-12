@@ -6,10 +6,11 @@ from aframe.model import Model
 from aframe.stress import StressTube, StressBox
 from aframe.cg import Cg
 from aframe.globalloads import GlobalLoads
+from lsdo_modules.module_csdl.module_csdl import ModuleCSDL
 
 
 
-class Group(csdl.Model):
+class Group(ModuleCSDL):
     def initialize(self):
         self.parameters.declare('options',default={})
         self.parameters.declare('beams',default={})
