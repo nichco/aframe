@@ -11,6 +11,6 @@ col_mask = np.ones((n,1))
 
 
 
-k = np.matmul(row_mask,k)
+k = np.matmul(np.matmul(row_mask,k),row_mask)
 
 print(k)

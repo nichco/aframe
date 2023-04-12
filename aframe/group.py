@@ -164,7 +164,9 @@ class Group(csdl.Model):
 
         # modify the global stiffness matrix with boundary conditions:
         # first remove the row/column with a boundary condition, then add a 1:
-        K = csdl.transpose(csdl.matmat(mask, csdl.transpose(csdl.matmat(mask,sum_k)))) + mask_eye
+        #K = csdl.transpose(csdl.matmat(mask, csdl.transpose(csdl.matmat(mask,sum_k)))) + mask_eye
+
+        K = csdl.matmat(csdl.matmat(mask, sum_k), mask) + mask_eye
         self.register_output('K', K)
 
         
