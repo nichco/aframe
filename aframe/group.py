@@ -1,5 +1,6 @@
 import numpy as np
 import csdl
+from lsdo_modules.module_csdl.module_csdl import ModuleCSDL
 from aframe.sectionproperties import SectionPropertiesTube, SectionPropertiesBox, SectionPropertiesRect
 from aframe.localstiffness import LocalStiffness
 from aframe.model import Model
@@ -8,7 +9,7 @@ from aframe.cg import Cg
 
 
 
-class Group(csdl.Model):
+class Group(ModuleCSDL):
     def initialize(self):
         self.parameters.declare('options')
         self.parameters.declare('bcond')
