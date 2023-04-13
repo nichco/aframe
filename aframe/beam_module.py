@@ -82,6 +82,7 @@ class LinearBeamCSDL(ModuleCSDL):
             num_beam_nodes = len(nodes)
 
             mesh = self.register_module_input(beam_name+'mesh',shape=(num_beam_nodes,6))
+            #print(mesh)
 
             F = self.register_module_input(beam_name+'loads',shape=(num_beam_nodes,6))
 

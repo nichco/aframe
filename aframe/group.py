@@ -21,6 +21,8 @@ class Group(ModuleCSDL):
         bcond = self.parameters['bcond']
 
         
+
+        
         # parse the beam dictionary to create the elemental options dictionary:
         # NOTE: beam_nodes, mesh, and loads must be linearly correlated
         for beam_name in beams:
@@ -29,7 +31,12 @@ class Group(ModuleCSDL):
             num_elements = num_beam_nodes - 1
             E, G, rho, type = beams[beam_name]['E'], beams[beam_name]['G'], beams[beam_name]['rho'], beams[beam_name]['type']
 
-            dummy_mesh = self.declare_variable(beam_name+'mesh',shape=(num_beam_nodes,6))
+            dummy_mesh_3 = self.declare_variable(beam_name+'mesh',shape=(num_beam_nodes,3))
+
+            # append zeros:
+            dummy_mesh = self.create_output(beam_name+'mesh_6',shape=(num_beam_nodes,6),val=0)
+            dummy_mesh[:,0:3] = 1*dummy_mesh_3
+
 
             # create an options dictionary entry for each element:
             for i in range(num_elements):

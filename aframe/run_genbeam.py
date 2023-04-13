@@ -22,15 +22,15 @@ class Run(csdl.Model):
             beam_nodes = beams[beam_name]['nodes']
             num_beam_nodes = len(beam_nodes)
             # get the beam start/stop coordinates
-            a = self.create_input(beam_name+'a',shape=(6),val=beams[beam_name]['a'])
-            b = self.create_input(beam_name+'b',shape=(6),val=beams[beam_name]['b'])
+            a = self.create_input(beam_name+'a',shape=(3),val=beams[beam_name]['a'])
+            b = self.create_input(beam_name+'b',shape=(3),val=beams[beam_name]['b'])
 
             ds = (b - a)/(num_beam_nodes - 1)
 
-            mesh = self.create_output(beam_name+'mesh',shape=(num_beam_nodes,6),val=0)
+            mesh = self.create_output(beam_name+'mesh',shape=(num_beam_nodes,3),val=0)
             for i in range(num_beam_nodes):
                 node_i = a + ds*i
-                mesh[i,:] = csdl.reshape(node_i, (1,6))
+                mesh[i,:] = csdl.reshape(node_i, (1,3))
         
 
 
@@ -64,8 +64,8 @@ if __name__ == '__main__':
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
     
-    beams[name]['a'] = [0,0,0,0,0,0]
-    beams[name]['b'] = [10,0,0,0,0,0]
+    beams[name]['a'] = [0,0,0]
+    beams[name]['b'] = [10,0,0]
 
     
     name = 'b2'
@@ -76,8 +76,8 @@ if __name__ == '__main__':
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
 
-    beams[name]['a'] = [10,0,0,0,0,0]
-    beams[name]['b'] = [10,1,0,0,0,0]
+    beams[name]['a'] = [10,0,0]
+    beams[name]['b'] = [10,1,0]
     
 
     bcond['root1'] = {}
