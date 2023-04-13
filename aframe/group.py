@@ -318,4 +318,4 @@ class Group(ModuleCSDL):
 
         
         # compute the (undeformed) structural cg:
-        self.add(MassProp(options=options), name='Cg')
+        self.add(MassProp(options=options), name='MassProp')
