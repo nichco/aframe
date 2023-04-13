@@ -91,6 +91,7 @@ class MassProp(csdl.Model):
             eixz[i] = m*rxz
             
         
+        # sum the m*r vector to get the moi:
         Ixx = csdl.sum(eixx)
         Iyy = csdl.sum(eiyy)
         Izz = csdl.sum(eizz)
