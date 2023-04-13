@@ -76,15 +76,8 @@ class LinearBeamCSDL(ModuleCSDL):
         beams = self.parameters['beams']
         bcond = self.parameters['bcond']
 
-        for beam_name in beams:
-
-            nodes = beams[beam_name]['nodes']
-            num_beam_nodes = len(nodes)
-
-            mesh = self.register_module_input(beam_name+'mesh',shape=(num_beam_nodes,6))
-            #print(mesh)
-
-            F = self.register_module_input(beam_name+'loads',shape=(num_beam_nodes,6))
 
         # solve the beam group:
         self.add_module(Group(beams=beams,bcond=bcond), name='Group')
+
+        self.register_module_output('mass')

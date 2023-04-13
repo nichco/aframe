@@ -37,9 +37,12 @@ class GlobalLoads(csdl.Model):
                 num_beam_nodes = len(beam_nodes)
 
                 # declare the beam loads (default is zero):
-                loads = self.declare_variable(beam_name+'loads',shape=(num_beam_nodes,6),val=0)
+                forces = self.declare_variable(beam_name+'_forces',shape=(num_beam_nodes, 3),val=0)
+                moments = self.declare_variable(beam_name+'moments',shape=(num_beam_nodes, 3),val=0)
                 # self.print_var(loads)
-
+                loads =  self.create_output(f'{beam_name}_loads', shape=(num_beam_nodes, 6), val=0)
+                loads[:,0:3] = forces
+                loads[:, 3:6] = moments
                 # iterate over the beam nodes:
                 for j, node in enumerate(beam_nodes):
                     beam_node_id = node_id[node]
