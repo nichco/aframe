@@ -12,26 +12,77 @@ from lsdo_modules.module_csdl.module_csdl import ModuleCSDL
 
 class Group(ModuleCSDL):
     def initialize(self):
-        self.parameters.declare('options',default={})
         self.parameters.declare('beams',default={})
         self.parameters.declare('bcond',default={})
+        self.parameters.declare('connections',default={})
     def define(self):
-        options = self.parameters['options']
         beams = self.parameters['beams']
         bcond = self.parameters['bcond']
+        connections = self.parameters['connections']
+
+
+        # automate the beam node assignment:
+        temp_nodes = {}
+        #nodes = {}
+        index = 0
+        for beam_name in beams:
+            temp_nodes[beam_name] = {}
+            n = beams[beam_name]['n']
+
+            temp_nodes_i = np.arange(index, index + n)
+            temp_nodes[beam_name]['nodes'] = temp_nodes_i
+            index += n
+
+            #nodes[beam_name] = {}
+
+
+        if connections:
+            nodes = {}
+            for cname in connections:
+                beam_list = connections[cname]['beam_names']
+                first_beam_name = beam_list[0]
+                first_beam_nodes = temp_nodes[first_beam_name]['nodes']
+                #fb_a = first_beam_nodes[0] # the start node of the first beam
+                #fb_b = first_beam_nodes[-1] # the stop node of the first beam
+
+                fb_cpos = connections[cname]['nodes'][0]
+                if fb_cpos == 'a': fb_id = first_beam_nodes[0]
+                if fb_cpos == 'b': fb_id = first_beam_nodes[-1]
+
+                # the connection inherits the node number of the first beam listed in the connection_beam_list:
+                for i, beam_name in enumerate(beam_list):
+                    nodes[beam_name] = {}
+                    c_pos = connections[cname]['nodes'][i]
+
+                    # don't change anything if the beam is the first beam in the connection:
+                    if beam_name == first_beam_name:
+                        nodes[beam_name]['nodes'] = temp_nodes[beam_name]['nodes']
+                    # change the nodes if the beam is not the first beam in the connection:
+                    else:
+                        temp = temp_nodes[beam_name]['nodes']
+                        if c_pos == 'a': 
+                            temp[0] = fb_id
+                        elif c_pos == 'b': 
+                            temp[-1] = fb_id
+
+                        nodes[beam_name]['nodes'] = temp
+        else:
+            nodes = temp_nodes
+
 
         
-
         
         # parse the beam dictionary to create the elemental options dictionary:
         # NOTE: beam_nodes, mesh, and loads must be linearly correlated
+        options = {}
         for beam_name in beams:
-            beam_nodes = beams[beam_name]['nodes']
+            #beam_nodes = beams[beam_name]['nodes']
+            beam_nodes = nodes[beam_name]['nodes']
             num_beam_nodes = len(beam_nodes)
             num_elements = num_beam_nodes - 1
             E, G, rho, type = beams[beam_name]['E'], beams[beam_name]['G'], beams[beam_name]['rho'], beams[beam_name]['type']
 
-            dummy_mesh_3 = self.register_module_input(beam_name ,shape=(num_beam_nodes,3), promotes=True)
+            dummy_mesh_3 = self.register_module_input(beam_name+'mesh' ,shape=(num_beam_nodes,3), promotes=True)
 
             # append zeros:
             dummy_mesh = self.create_output(beam_name+'mesh_6',shape=(num_beam_nodes,6),val=0)
@@ -39,17 +90,17 @@ class Group(ModuleCSDL):
 
 
             # create an options dictionary entry for each element:
-            for i in range(num_elements):
-                element_name = beam_name + '_element_' + str(i)
+            for j in range(num_elements):
+                element_name = beam_name + '_element_' + str(j)
                 options[element_name] = {}
                 options[element_name]['E'] = E
                 options[element_name]['G'] = G
                 options[element_name]['rho'] = rho
                 options[element_name]['type'] = type
-                options[element_name]['nodes'] = [beam_nodes[i], beam_nodes[i+1]]
+                options[element_name]['nodes'] = [beam_nodes[j], beam_nodes[j+1]]
 
-                na = csdl.reshape(dummy_mesh[i,:], (6))
-                nb = csdl.reshape(dummy_mesh[i+1,:], (6))
+                na = csdl.reshape(dummy_mesh[j,:], (6))
+                nb = csdl.reshape(dummy_mesh[j+1,:], (6))
 
                 self.register_output(element_name+'node_a',na)
                 self.register_output(element_name+'node_b',nb)
@@ -74,6 +125,7 @@ class Group(ModuleCSDL):
         if beams:
             self.add(GlobalLoads(options=options,
                                 beams=beams,
+                                nodes=nodes,
                                 bcond=bcond,
                                 node_id=node_id,
                                 num_unique_nodes=num_unique_nodes

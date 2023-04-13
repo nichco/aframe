@@ -9,12 +9,14 @@ class GlobalLoads(csdl.Model):
     def initialize(self):
         self.parameters.declare('options')
         self.parameters.declare('beams')
+        self.parameters.declare('nodes')
         self.parameters.declare('bcond')
         self.parameters.declare('node_id')
         self.parameters.declare('num_unique_nodes')
     def define(self):
         options = self.parameters['options']
         beams = self.parameters['beams']
+        nodes = self.parameters['nodes']
         bcond = self.parameters['bcond']
         node_id = self.parameters['node_id']
         num_unique_nodes = self.parameters['num_unique_nodes']
@@ -33,12 +35,13 @@ class GlobalLoads(csdl.Model):
 
             # iterate over every beam:
             for i, beam_name in enumerate(beams):
-                beam_nodes = beams[beam_name]['nodes']
+                #beam_nodes = beams[beam_name]['nodes']
+                beam_nodes = nodes[beam_name]['nodes']
                 num_beam_nodes = len(beam_nodes)
 
                 # declare the beam loads (default is zero):
                 forces = self.declare_variable(beam_name+'_forces',shape=(num_beam_nodes, 3),val=0)
-                moments = self.declare_variable(beam_name+'moments',shape=(num_beam_nodes, 3),val=0)
+                moments = self.declare_variable(beam_name+'_moments',shape=(num_beam_nodes, 3),val=0)
                 # self.print_var(loads)
                 loads =  self.create_output(f'{beam_name}_loads', shape=(num_beam_nodes, 6), val=0)
                 loads[:,0:3] = forces

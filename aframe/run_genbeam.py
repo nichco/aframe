@@ -8,19 +8,20 @@ from aframe.group import Group
 
 class Run(csdl.Model):
     def initialize(self):
-        self.parameters.declare('options',default={})
         self.parameters.declare('beams',default={})
         self.parameters.declare('bcond',default={})
+        self.parameters.declare('connections',default={})
     def define(self):
-        options = self.parameters['options']
         beams = self.parameters['beams']
         bcond = self.parameters['bcond']
+        connections = self.parameters['connections']
 
         
         # dummy mesh generation code:
         for beam_name in beams:
-            beam_nodes = beams[beam_name]['nodes']
-            num_beam_nodes = len(beam_nodes)
+            #beam_nodes = beams[beam_name]['nodes']
+            #num_beam_nodes = len(beam_nodes)
+            num_beam_nodes = beams[beam_name]['n']
             # get the beam start/stop coordinates
             a = self.create_input(beam_name+'a',shape=(3),val=beams[beam_name]['a'])
             b = self.create_input(beam_name+'b',shape=(3),val=beams[beam_name]['b'])
@@ -34,16 +35,16 @@ class Run(csdl.Model):
         
 
 
-        dummy_loads = np.zeros((10,6))
+        dummy_loads = np.zeros((10,3))
         dummy_loads[-1,2] = 100
-        self.create_input('b1loads',shape=(10,6),val=dummy_loads)
+        self.create_input('b1_forces',shape=(10,3),val=dummy_loads)
 
 
 
 
         
         # solve the beam group:
-        self.add(Group(options=options,beams=beams,bcond=bcond), name='Group')
+        self.add(Group(beams=beams,bcond=bcond,connections=connections), name='Group')
         
         
 
@@ -54,15 +55,16 @@ class Run(csdl.Model):
 
 if __name__ == '__main__':
 
-    options, bcond, beams = {}, {}, {}
+    bcond, beams = {}, {}
 
     name = 'b1'
     beams[name] = {}
-    beams[name]['nodes'] = [0,1,2,3,4,5,6,7,8,9]
+    #beams[name]['nodes'] = [0,1,2,3,4,5,6,7,8,9]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
+    beams[name]['n'] = 10
     
     beams[name]['a'] = [0,0,0]
     beams[name]['b'] = [10,0,0]
@@ -70,11 +72,12 @@ if __name__ == '__main__':
     
     name = 'b2'
     beams[name] = {}
-    beams[name]['nodes'] = [9,10,11,12]
+    #beams[name]['nodes'] = [9,10,11,12]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
+    beams[name]['n'] = 4
 
     beams[name]['a'] = [10,0,0]
     beams[name]['b'] = [10,1,0]
@@ -85,9 +88,17 @@ if __name__ == '__main__':
     bcond['root1']['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
 
 
+    connections = {}
+    
+    name = 'c1'
+    connections[name] = {}
+    connections[name]['beam_names'] = ['b1','b2']
+    connections[name]['nodes'] = ['b','a'] # connects the end of b1 to the start of b2
 
 
-    sim = python_csdl_backend.Simulator(Run(options=options,beams=beams,bcond=bcond))
+
+
+    sim = python_csdl_backend.Simulator(Run(beams=beams,bcond=bcond,connections=connections))
     sim.run()
 
     
@@ -97,27 +108,33 @@ if __name__ == '__main__':
 
 
     coord = sim['coord']
-
+    
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
 
-    for i, element_name in enumerate(options):
-        coord_a = coord[i,0,:]
-        coord_b = coord[i,1,:]
 
-        x = np.array([coord_a[0], coord_b[0]])
-        y = np.array([coord_a[1], coord_b[1]])
-        z = np.array([coord_a[2], coord_b[2]])
+    for beam_name in beams:
+        #beam_nodes = beams[beam_name]['nodes']
+        #num_beam_nodes = len(beam_nodes)
+        num_beam_nodes = beams[beam_name]['n']
+        num_elements = num_beam_nodes - 1
 
-        ax.plot(x,y,z,color='k')
-        ax.scatter(coord_a[0], coord_a[1], coord_a[2],color='yellow',edgecolors='black',linewidth=1)
-        ax.scatter(coord_b[0], coord_b[1], coord_b[2],color='yellow',edgecolors='black',linewidth=1)
+        for i in range(num_elements):
+            element_name = beam_name + '_element_' + str(i)
+            na = sim[element_name+'node_a_def']
+            nb = sim[element_name+'node_b_def']
 
+            x = np.array([na[0], nb[0]])
+            y = np.array([na[1], nb[1]])
+            z = np.array([na[2], nb[2]])
 
-    ax.set_xlim(0,10)
-    ax.set_ylim(-1,1)
-    ax.set_zlim(-0.4,0.1)
+            ax.plot(x,y,z,color='k')
+            ax.scatter(na[0], na[1], na[2],color='yellow',edgecolors='black',linewidth=1)
+            ax.scatter(nb[0], nb[1], nb[2],color='yellow',edgecolors='black',linewidth=1)
 
+    
+
+    
     # plot the cg:
     cg = sim['cg']
     cg_def = sim['cg_def']
@@ -125,6 +142,9 @@ if __name__ == '__main__':
     ax.scatter(cg_def[0],cg_def[1],cg_def[2],color='red',s=50,edgecolors='black')
 
 
+    ax.set_xlim(0,10)
+    ax.set_ylim(-1,1)
+    ax.set_zlim(-0.4,0.1)
     plt.show()
     
 
