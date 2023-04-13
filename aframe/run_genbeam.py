@@ -83,9 +83,11 @@ if __name__ == '__main__':
     beams[name]['b'] = [10,1,0]
     
 
-    bcond['root1'] = {}
-    bcond['root1']['node'] = 0
-    bcond['root1']['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
+    name = 'root'
+    bcond[name] = {}
+    bcond[name]['beam'] = 'b1'
+    bcond[name]['fpos'] = 'a'
+    bcond[name]['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
 
 
     connections = {}

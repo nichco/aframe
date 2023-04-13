@@ -7,23 +7,23 @@ import python_csdl_backend
 
 class GlobalLoads(csdl.Model):
     def initialize(self):
-        self.parameters.declare('options')
         self.parameters.declare('beams')
         self.parameters.declare('nodes')
         self.parameters.declare('bcond')
         self.parameters.declare('node_id')
         self.parameters.declare('num_unique_nodes')
+        self.parameters.declare('bc_node_list')
     def define(self):
-        options = self.parameters['options']
         beams = self.parameters['beams']
         nodes = self.parameters['nodes']
         bcond = self.parameters['bcond']
         node_id = self.parameters['node_id']
         num_unique_nodes = self.parameters['num_unique_nodes']
+        bc_list = self.parameters['bc_node_list']
         num_beams = len(beams)
 
         # create a list of bc nodes:
-        bc_list = [bcond[bc_name]['node'] for bc_name in bcond]
+        #bc_list = [bcond[bc_name]['node'] for bc_name in bcond]
 
 
 

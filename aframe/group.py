@@ -118,17 +118,7 @@ class Group(ModuleCSDL):
 
 
 
-        # create the global loads vector:
-        if beams:
-            self.add(GlobalLoads(options=options,
-                                beams=beams,
-                                nodes=nodes,
-                                bcond=bcond,
-                                node_id=node_id,
-                                num_unique_nodes=num_unique_nodes
-                                ), name='GlobalLoads')
         
-        F = self.declare_variable('F',shape=(dim),val=0)
 
 
 
@@ -165,10 +155,31 @@ class Group(ModuleCSDL):
 
 
 
-        # boundary conditions
-        bc_id = []
+        # boundary conditions        
+        bc_id, bc_node_list = [], []
         for node, id in node_id.items():
             
+            for bc_name in bcond:
+                beam_name = bcond[bc_name]['beam']
+                beam_nodes = nodes[beam_name]['nodes']
+                fpos = bcond[bc_name]['fpos']
+
+                if fpos == 'a': bcnode = beam_nodes[0]
+                elif fpos == 'b': bcnode = beam_nodes[-1]
+
+                # add the bc node to the bc_node_list for future use by global loads:
+                bc_node_list.append(bcnode)
+
+                if bcnode == node:
+                    # iterate over 'fdim' to see which dof's are constrained:
+                    for i, fdim in enumerate(bcond[bc_name]['fdim']):
+                        if fdim == 1:
+                            # add the constrained dof ID to the bc_id list:
+                            bc_id.append(id*6 + i)
+
+        """
+        bc_id = []
+        for node, id in node_id.items():
             for bc_name in bcond:
                 if bcond[bc_name]['node'] == node:
                     # iterate over 'fdim' to see which dof's are constrained:
@@ -176,6 +187,7 @@ class Group(ModuleCSDL):
                         if fdim == 1:
                             # add the constrained dof ID to the bc_id list:
                             bc_id.append(id*6 + i)
+        """
         
 
 
@@ -192,6 +204,21 @@ class Group(ModuleCSDL):
         K = csdl.matmat(csdl.matmat(mask, sum_k), mask) + mask_eye
         self.register_output('K', K)
 
+
+
+
+        # create the global loads vector:
+        if beams:
+            self.add(GlobalLoads(beams=beams,
+                                nodes=nodes,
+                                bcond=bcond,
+                                node_id=node_id,
+                                num_unique_nodes=num_unique_nodes,
+                                bc_node_list=bc_node_list,
+                                ), name='GlobalLoads')
+        
+        F = self.declare_variable('F',shape=(dim),val=0)
+
         
 
 
@@ -201,7 +228,7 @@ class Group(ModuleCSDL):
         solve_res.declare_state(state='U', residual='R')
         solve_res.nonlinear_solver = csdl.NewtonSolver(
         solve_subsystems=False,
-        maxiter=1000,
+        maxiter=100,
         iprint=False,
         atol=1E-5,
         )

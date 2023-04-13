@@ -19,8 +19,6 @@ class Run(csdl.Model):
 
         # dummy mesh generation code:
         for beam_name in beams:
-            #beam_nodes = beams[beam_name]['nodes']
-            #num_beam_nodes = len(beam_nodes)
             num_beam_nodes = beams[beam_name]['n']
             # get the beam start/stop coordinates
             a = self.create_input(beam_name+'a',shape=(3),val=beams[beam_name]['a'])
@@ -179,12 +177,14 @@ if __name__ == '__main__':
     # boundary conditions:
     name = 'fixed_left'
     bcond[name] = {}
-    bcond[name]['node'] = 0
+    bcond[name]['beam'] = 'b1'
+    bcond[name]['fpos'] = 'a'
     bcond[name]['fdim'] = [1,1,1,1,1,1] # x, y, z, phi, theta, psi: a 1 indicates the corresponding dof is fixed
 
     name = 'fixed_right'
     bcond[name] = {}
-    bcond[name]['node'] = 17
+    bcond[name]['beam'] = 'b10'
+    bcond[name]['fpos'] = 'b'
     bcond[name]['fdim'] = [1,1,1,1,1,1]
 
 
@@ -248,6 +248,12 @@ if __name__ == '__main__':
             plt.plot(x,y,color='k',zorder=7)
             plt.scatter(x,y,s=50,zorder=10,color='yellow',edgecolors='black',linewidth=1)
 
+
+    # plot the cg:
+    cg = sim['cg']
+    cg_def = sim['cg_def']
+    plt.scatter(cg[0],cg[1],color='blue',s=50,edgecolors='black')
+    plt.scatter(cg_def[0],cg_def[1],color='red',s=40,edgecolors='black')
 
 
     plt.show()
