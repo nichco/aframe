@@ -4,7 +4,7 @@ from aframe.sectionproperties import SectionPropertiesTube, SectionPropertiesBox
 from aframe.localstiffness import LocalStiffness
 from aframe.model import Model
 from aframe.stress import StressTube, StressBox
-from aframe.cg import Cg
+from aframe.massprop import MassProp
 from aframe.globalloads import GlobalLoads
 from lsdo_modules.module_csdl.module_csdl import ModuleCSDL
 
@@ -23,7 +23,6 @@ class Group(ModuleCSDL):
 
         # automate the beam node assignment:
         temp_nodes = {}
-        #nodes = {}
         index = 0
         for beam_name in beams:
             temp_nodes[beam_name] = {}
@@ -32,8 +31,6 @@ class Group(ModuleCSDL):
             temp_nodes_i = np.arange(index, index + n)
             temp_nodes[beam_name]['nodes'] = temp_nodes_i
             index += n
-
-            #nodes[beam_name] = {}
 
 
         if connections:
@@ -294,4 +291,4 @@ class Group(ModuleCSDL):
 
         
         # compute the (undeformed) structural cg:
-        self.add(Cg(options=options), name='Cg')
+        self.add(MassProp(options=options), name='Cg')

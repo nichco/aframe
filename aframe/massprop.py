@@ -4,7 +4,7 @@ import python_csdl_backend
 
 
 
-class Cg(csdl.Model):
+class MassProp(csdl.Model):
     def initialize(self):
         self.parameters.declare('options')
     def define(self):
@@ -39,7 +39,7 @@ class Cg(csdl.Model):
 
             r_cg = (r_a + r_b)/2
             r_cg_def = (r_a_def + r_b_def)/2
-            # self.register_output(element_name+'r_cg', r_cg)
+            self.register_output(element_name+'r_cg', r_cg)
 
             # assign r_cg to the r*mass vector:
             rm_vec[i,:] = csdl.reshape(r_cg*csdl.expand(m, (3)), new_shape=(1,3))
@@ -59,6 +59,50 @@ class Cg(csdl.Model):
 
         cg_def = sum_rm_def/csdl.expand(total_mass, (3))
         self.register_output('cg_def',cg_def)
+
+
+
+        
+        # compute moments of inertia:
+        eixx = self.create_output('eixx',shape=(len(options)),val=0)
+        eiyy = self.create_output('eiyy',shape=(len(options)),val=0)
+        eizz = self.create_output('eizz',shape=(len(options)),val=0)
+        eixz = self.create_output('eixz',shape=(len(options)),val=0)
+        for i, element_name in enumerate(options):
+
+            # get the mass:
+            m = m_vec[i]
+
+            # get the position vector:
+            r = self.declare_variable(element_name+'r_cg',shape=(3))
+            x = r[0]
+            y = r[1]
+            z = r[2]
+
+            rxx = y**2 + z**2
+            ryy = x**2 + z**2
+            rzz = x**2 + y**2
+            rxz = x*z
+
+
+            eixx[i] = m*rxx
+            eiyy[i] = m*ryy
+            eizz[i] = m*rzz
+            eixz[i] = m*rxz
+            
+        
+        Ixx = csdl.sum(eixx)
+        Iyy = csdl.sum(eiyy)
+        Izz = csdl.sum(eizz)
+        Ixz = csdl.sum(eixz)
+        self.register_output('Ixx',Ixx)
+        self.register_output('Iyy',Iyy)
+        self.register_output('Izz',Izz)
+        self.register_output('Ixz',Ixz)
+
+        # self.print_var(Iyy)
+
+
 
         
             
