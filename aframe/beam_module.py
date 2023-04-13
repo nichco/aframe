@@ -15,6 +15,7 @@ class LinearBeam(MechanicsModel):
         self.parameters.declare('rho', default=2700)
         self.parameters.declare('type', default='tube')
         self.parameters.declare('num_nodes', default=None)
+        self.parameters.declare('connections', default={})
         #self.num_nodes = None
 
     def _assemble_csdl(self):
@@ -23,6 +24,7 @@ class LinearBeam(MechanicsModel):
         rho = self.parameters['rho']
         typ = self.parameters['type']
         num_nodes = self.parameters['num_nodes']
+        connections = self.parameters['connections']
 
         comp = self.parameters['component']
         comp_name = comp.parameters['name']
@@ -49,6 +51,7 @@ class LinearBeam(MechanicsModel):
         csdl_model = LinearBeamCSDL(
             beams=beams,  
             bcond=bcond,
+            connections=connections,
         )
 
         return csdl_model
@@ -65,13 +68,15 @@ class LinearBeamCSDL(ModuleCSDL):
     def initialize(self):
         self.parameters.declare('beams')
         self.parameters.declare('bcond')
+        self.parameters.declare('connections')
     
     def define(self):
         beams = self.parameters['beams']
         bcond = self.parameters['bcond']
+        connections = self.parameters['connections']
 
 
         # solve the beam group:
-        self.add_module(Group(beams=beams,bcond=bcond), name='Group')
+        self.add_module(Group(beams=beams,connections=connections,bcond=bcond), name='Group')
 
         self.register_module_output('mass')
