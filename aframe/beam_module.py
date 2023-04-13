@@ -10,11 +10,32 @@ class LinearBeam(MechanicsModel):
         self.parameters.declare('component', default=None)
         self.parameters.declare('mesh', default=None)
         self.parameters.declare('struct_solver', True)
+        self.parameters.declare('E', default=69E9)
+        self.parameters.declare('G', default=26E9)
+        self.parameters.declare('rho', default=2700)
+        self.parameters.declare('type', default='tube')
+        self.parameters.declare('nodes', types=list)
         self.num_nodes = None
 
     def _assemble_csdl(self):
-        options = {}
-        beams = {}
+        E = self.parameters['E']
+        G = self.parameters['G']
+        rho = self.parameters['rho']
+        typ = self.parameters['type']
+        nodes = self.parameters['nodes']
+        comp = self.parameters['component']
+        comp_name = comp.parameters['name']
+        beam_name = f'{comp_name}_beam'
+        beams = dict()
+        beams[beam_name] = dict(
+            nodes=nodes,
+            E=E,
+            G=G,
+            rho=rho,
+            type=typ,
+        )
+        
+
         bcond = {}
         name = 'root'
         bcond[name] = {}
@@ -32,7 +53,6 @@ class LinearBeam(MechanicsModel):
         """
 
         csdl_model = LinearBeamCSDL(
-            options=options,
             beams=beams,  
             bcond=bcond,
         )
@@ -40,18 +60,24 @@ class LinearBeam(MechanicsModel):
         return csdl_model
 
 
+class LinearBeamMesh(Module):
+    def initialize(self, kwargs):
+        self.parameters.declare('meshes', types=dict)
+        self.parameters.declare('mesh_units', default='m')
+
+
+
 class LinearBeamCSDL(ModuleCSDL):
     def initialize(self):
-        self.parameters.declare('options')
         self.parameters.declare('beams')
         self.parameters.declare('bcond')
     
     def define(self):
-        options = self.parameters['options']
         beams = self.parameters['beams']
         bcond = self.parameters['bcond']
 
         for beam_name in beams:
+
             nodes = beams[beam_name]['nodes']
             num_beam_nodes = len(nodes)
 
@@ -60,4 +86,4 @@ class LinearBeamCSDL(ModuleCSDL):
             F = self.register_module_input(beam_name+'loads',shape=(num_beam_nodes,6))
 
         # solve the beam group:
-        self.add_module(Group(options=options,beams=beams,bcond=bcond), name='Group')
+        self.add_module(Group(beams=beams,bcond=bcond), name='Group')
