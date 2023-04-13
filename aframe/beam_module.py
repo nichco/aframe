@@ -14,21 +14,23 @@ class LinearBeam(MechanicsModel):
         self.parameters.declare('G', default=26E9)
         self.parameters.declare('rho', default=2700)
         self.parameters.declare('type', default='tube')
-        self.parameters.declare('nodes', types=list)
-        self.num_nodes = None
+        self.parameters.declare('num_nodes', default=None)
+        #self.num_nodes = None
 
     def _assemble_csdl(self):
         E = self.parameters['E']
         G = self.parameters['G']
         rho = self.parameters['rho']
         typ = self.parameters['type']
-        nodes = self.parameters['nodes']
+        num_nodes = self.parameters['num_nodes']
+
         comp = self.parameters['component']
         comp_name = comp.parameters['name']
         beam_name = f'{comp_name}_beam'
+
         beams = dict()
         beams[beam_name] = dict(
-            nodes=nodes,
+            num_nodes=num_nodes,
             E=E,
             G=G,
             rho=rho,
@@ -39,18 +41,10 @@ class LinearBeam(MechanicsModel):
         bcond = {}
         name = 'root'
         bcond[name] = {}
-        bcond[name]['node'] = 0
+        bcond[name]['beam'] = 'b1'
+        bcond[name]['fpos'] = 'a'
         bcond[name]['fdim'] = [1, 1, 1, 1, 1, 1]
 
-        """
-        name = 'b1'
-        beams[name] = {}
-        beams[name]['nodes'] = [0,1,2,3,4,5,6,7,8,9]
-        beams[name]['E'] = 69E9
-        beams[name]['G'] = 26E9
-        beams[name]['rho'] = 2700
-        beams[name]['type'] = 'tube'
-        """
 
         csdl_model = LinearBeamCSDL(
             beams=beams,  

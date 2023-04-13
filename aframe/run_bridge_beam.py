@@ -33,9 +33,9 @@ class Run(csdl.Model):
 
 
         # add a load:
-        dummy_loads = np.zeros((3,3))
+        dummy_loads = np.zeros((5,3))
         dummy_loads[-1,1] = 1000000
-        self.create_input('b4_forces',shape=(3,3),val=dummy_loads)
+        self.create_input('b4_forces',shape=(5,3),val=dummy_loads)
 
         # solve the beam group:
         self.add(Group(beams=beams,bcond=bcond,connections=connections), name='Group')
@@ -52,123 +52,112 @@ if __name__ == '__main__':
 
     name = 'b1'
     beams[name] = {}
-    #beams[name]['nodes'] = [0,1,2]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
-    beams[name]['n'] = 3
+    beams[name]['n'] = 5
 
     beams[name]['a'] = [0,0,0]
     beams[name]['b'] = [1,0,0]
 
     name = 'b2'
     beams[name] = {}
-    #beams[name]['nodes'] = [0,3,4]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
-    beams[name]['n'] = 3
+    beams[name]['n'] = 5
     beams[name]['a'] = [0,0,0]
     beams[name]['b'] = [0.5,1,0]
 
     name = 'b3'
     beams[name] = {}
-    #beams[name]['nodes'] = [4,5,2]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
-    beams[name]['n'] = 3
+    beams[name]['n'] = 5
     beams[name]['a'] = [0.5,1,0]
     beams[name]['b'] = [1,0,0]
 
     name = 'b4'
     beams[name] = {}
-    #beams[name]['nodes'] = [4,6,8]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
-    beams[name]['n'] = 3
+    beams[name]['n'] = 5
     beams[name]['a'] = [0.5,1,0]
     beams[name]['b'] = [1.5,1,0]
 
     name = 'b5'
     beams[name] = {}
-    #beams[name]['nodes'] = [2,7,8]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
-    beams[name]['n'] = 3
+    beams[name]['n'] = 5
     beams[name]['a'] = [1,0,0]
     beams[name]['b'] = [1.5,1,0]
 
     name = 'b6'
     beams[name] = {}
-    #beams[name]['nodes'] = [2,9,11]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
-    beams[name]['n'] = 3
+    beams[name]['n'] = 5
     beams[name]['a'] = [1,0,0]
     beams[name]['b'] = [2,0,0]
 
     name = 'b7'
     beams[name] = {}
-    #beams[name]['nodes'] = [8,10,11]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
-    beams[name]['n'] = 3
+    beams[name]['n'] = 5
     beams[name]['a'] = [1.5,1,0]
     beams[name]['b'] = [2,0,0]
 
     name = 'b8'
     beams[name] = {}
-    #beams[name]['nodes'] = [8,12,14]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
-    beams[name]['n'] = 3
+    beams[name]['n'] = 5
     beams[name]['a'] = [1.5,1,0]
     beams[name]['b'] = [2.5,1,0]
 
     name = 'b9'
     beams[name] = {}
-    #beams[name]['nodes'] = [11,13,14]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
-    beams[name]['n'] = 3
+    beams[name]['n'] = 5
     beams[name]['a'] = [2,0,0]
     beams[name]['b'] = [2.5,1,0]
 
     name = 'b10'
     beams[name] = {}
-    #beams[name]['nodes'] = [11,15,17]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
-    beams[name]['n'] = 3
+    beams[name]['n'] = 5
     beams[name]['a'] = [2,0,0]
     beams[name]['b'] = [3,0,0]
 
     name = 'b11'
     beams[name] = {}
-    #beams[name]['nodes'] = [14,16,17]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
     beams[name]['type'] = 'tube'
-    beams[name]['n'] = 3
+    beams[name]['n'] = 5
     beams[name]['a'] = [2.5,1,0]
     beams[name]['b'] = [3,0,0]
 
