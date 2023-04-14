@@ -19,8 +19,6 @@ class Run(csdl.Model):
         
         # dummy mesh generation code:
         for beam_name in beams:
-            #beam_nodes = beams[beam_name]['nodes']
-            #num_beam_nodes = len(beam_nodes)
             num_beam_nodes = beams[beam_name]['n']
             # get the beam start/stop coordinates
             a = self.create_input(beam_name+'a',shape=(3),val=beams[beam_name]['a'])
