@@ -15,10 +15,12 @@ class Group(ModuleCSDL):
         self.parameters.declare('beams',default={})
         self.parameters.declare('bcond',default={})
         self.parameters.declare('connections',default={})
+        self.parameters.declare('mesh_units',default='m')
     def define(self):
         beams = self.parameters['beams']
         bcond = self.parameters['bcond']
         connections = self.parameters['connections']
+        mesh_units = self.parameters['mesh_units']
 
 
 
@@ -92,7 +94,10 @@ class Group(ModuleCSDL):
 
             # append zeros:
             dummy_mesh = self.create_output(beam_name+'expanded_mesh',shape=(num_beam_nodes,6),val=0)
-            dummy_mesh[:,0:3] = 1*mesh
+
+            if mesh_units == 'm': dummy_mesh[:,0:3] = 1*mesh
+            elif mesh_units == 'ft': dummy_mesh[:,0:3] = mesh/3.2808399
+            else: raise Exception('Error: invalid units')
 
 
             # create an options dictionary entry for each element:

@@ -47,93 +47,20 @@ class Run(csdl.Model):
 
 if __name__ == '__main__':
 
-    #options, bcond, beams = {}, {}, {}
     beams, bcond, connections = {}, {}, {}
 
 
     beams['b1'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [0,0,0],'b': [1,0,0]}
     beams['b2'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [0,0,0],'b': [0.5,1,0]}
     beams['b3'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [0.5,1,0],'b': [1,0,0]}
-
-    name = 'b4'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 5
-    beams[name]['a'] = [0.5,1,0]
-    beams[name]['b'] = [1.5,1,0]
-
-    name = 'b5'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 5
-    beams[name]['a'] = [1,0,0]
-    beams[name]['b'] = [1.5,1,0]
-
-    name = 'b6'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 5
-    beams[name]['a'] = [1,0,0]
-    beams[name]['b'] = [2,0,0]
-
-    name = 'b7'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 5
-    beams[name]['a'] = [1.5,1,0]
-    beams[name]['b'] = [2,0,0]
-
-    name = 'b8'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 5
-    beams[name]['a'] = [1.5,1,0]
-    beams[name]['b'] = [2.5,1,0]
-
-    name = 'b9'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 5
-    beams[name]['a'] = [2,0,0]
-    beams[name]['b'] = [2.5,1,0]
-
-    name = 'b10'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 5
-    beams[name]['a'] = [2,0,0]
-    beams[name]['b'] = [3,0,0]
-
-    name = 'b11'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 5
-    beams[name]['a'] = [2.5,1,0]
-    beams[name]['b'] = [3,0,0]
+    beams['b4'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [0.5,1,0],'b': [1.5,1,0]}
+    beams['b5'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [1,0,0],'b': [1.5,1,0]}
+    beams['b6'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [1,0,0],'b': [2,0,0]}
+    beams['b7'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [1.5,1,0],'b': [2,0,0]}
+    beams['b8'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [1.5,1,0],'b': [2.5,1,0]}
+    beams['b9'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [2,0,0],'b': [2.5,1,0]}
+    beams['b10'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [2,0,0],'b': [3,0,0]}
+    beams['b11'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [2.5,1,0],'b': [3,0,0]}
 
 
 
