@@ -317,5 +317,5 @@ class Group(ModuleCSDL):
 
 
         
-        # compute the (undeformed) structural cg:
+        # compute the cg and moi:
         self.add(MassProp(options=options), name='MassProp')
