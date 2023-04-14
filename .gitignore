@@ -1,2 +1,3 @@
 
-/aframe/__pycache*
+/__pycache/
+/aframe/__pycache/
