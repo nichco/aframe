@@ -50,36 +50,10 @@ if __name__ == '__main__':
     #options, bcond, beams = {}, {}, {}
     beams, bcond, connections = {}, {}, {}
 
-    name = 'b1'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 5
 
-    beams[name]['a'] = [0,0,0]
-    beams[name]['b'] = [1,0,0]
-
-    name = 'b2'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 5
-    beams[name]['a'] = [0,0,0]
-    beams[name]['b'] = [0.5,1,0]
-
-    name = 'b3'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 5
-    beams[name]['a'] = [0.5,1,0]
-    beams[name]['b'] = [1,0,0]
+    beams['b1'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [0,0,0],'b': [1,0,0]}
+    beams['b2'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [0,0,0],'b': [0.5,1,0]}
+    beams['b3'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [0.5,1,0],'b': [1,0,0]}
 
     name = 'b4'
     beams[name] = {}
