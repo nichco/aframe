@@ -58,8 +58,16 @@ if __name__ == '__main__':
     bcond, beams = {}, {}
 
     name = 'b1'
+    beams[name] = {'E': 69E9,
+                   'G': 26E9,
+                   'rho': 2700,
+                   'type': 'tube',
+                   'n': 10,
+                   'a': [0,0,0],
+                   'b': [10,0,0]}
+    """
+    name = 'b1'
     beams[name] = {}
-    #beams[name]['nodes'] = [0,1,2,3,4,5,6,7,8,9]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
@@ -68,11 +76,10 @@ if __name__ == '__main__':
     
     beams[name]['a'] = [0,0,0]
     beams[name]['b'] = [10,0,0]
-
+    """
     
     name = 'b2'
     beams[name] = {}
-    #beams[name]['nodes'] = [9,10,11,12]
     beams[name]['E'] = 69E9
     beams[name]['G'] = 26E9
     beams[name]['rho'] = 2700
@@ -108,8 +115,6 @@ if __name__ == '__main__':
     vonmises_stress = sim['vonmises_stress']
     #print(vonmises_stress)
 
-
-    coord = sim['coord']
     
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')

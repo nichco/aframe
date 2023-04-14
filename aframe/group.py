@@ -271,7 +271,7 @@ class Group(ModuleCSDL):
 
 
         # parse the displacements to get the new nodal coordinates:
-        coord = self.create_output('coord',shape=(num_elements,2,6)) # (element,node a/node b,(x,y,z,phi,theta,psi))
+        # coord = self.create_output('coord',shape=(num_elements,2,6)) # (element,node a/node b,(x,y,z,phi,theta,psi))
         for i, element_name in enumerate(options):
             # get the undeformed nodal coordinates:
             node_a = self.declare_variable(element_name+'node_a',shape=(6))
@@ -291,8 +291,8 @@ class Group(ModuleCSDL):
             self.register_output(element_name+'node_b_def',node_b + dn2)
 
             # assign grouped output:
-            coord[i,0,:] = csdl.reshape(node_a + dn1, (1,1,6))
-            coord[i,1,:] = csdl.reshape(node_b + dn2, (1,1,6))
+            # coord[i,0,:] = csdl.reshape(node_a + dn1, (1,1,6))
+            # coord[i,1,:] = csdl.reshape(node_b + dn2, (1,1,6))
 
 
 
