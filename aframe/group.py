@@ -21,6 +21,15 @@ class Group(ModuleCSDL):
         connections = self.parameters['connections']
 
 
+
+
+        # error handling
+        if not beams: raise Exception('Error: empty beam dictionary')
+        if not bcond: raise Exception('Error: an empty boundary condition dictionary is guaranteed to yield a singular system')
+
+
+
+
         # automate the beam node assignment:
         temp_nodes = {}
         index = 0
@@ -39,12 +48,11 @@ class Group(ModuleCSDL):
                 beam_list = connections[cname]['beam_names']
                 first_beam_name = beam_list[0]
                 first_beam_nodes = temp_nodes[first_beam_name]['nodes']
-                #fb_a = first_beam_nodes[0] # the start node of the first beam
-                #fb_b = first_beam_nodes[-1] # the stop node of the first beam
 
                 fb_cpos = connections[cname]['nodes'][0]
                 if fb_cpos == 'a': fb_id = first_beam_nodes[0]
-                if fb_cpos == 'b': fb_id = first_beam_nodes[-1]
+                elif fb_cpos == 'b': fb_id = first_beam_nodes[-1]
+                else: raise Exception('Error: invalid connection string')
 
                 # the connection inherits the node number of the first beam listed in the connection_beam_list:
                 for i, beam_name in enumerate(beam_list):
@@ -61,6 +69,7 @@ class Group(ModuleCSDL):
                             temp[0] = fb_id
                         elif c_pos == 'b': 
                             temp[-1] = fb_id
+                        else: raise Exception('Error: invalid connection string')
 
                         nodes[beam_name]['nodes'] = temp
         else:
@@ -79,11 +88,11 @@ class Group(ModuleCSDL):
             num_elements = num_beam_nodes - 1
             E, G, rho, type = beams[beam_name]['E'], beams[beam_name]['G'], beams[beam_name]['rho'], beams[beam_name]['type']
 
-            dummy_mesh_3 = self.register_module_input(beam_name+'mesh' ,shape=(num_beam_nodes,3), promotes=True)
+            mesh = self.register_module_input(beam_name ,shape=(num_beam_nodes,3), promotes=True)
 
             # append zeros:
-            dummy_mesh = self.create_output(beam_name+'mesh_6',shape=(num_beam_nodes,6),val=0)
-            dummy_mesh[:,0:3] = 1*dummy_mesh_3
+            dummy_mesh = self.create_output(beam_name+'expanded_mesh',shape=(num_beam_nodes,6),val=0)
+            dummy_mesh[:,0:3] = 1*mesh
 
 
             # create an options dictionary entry for each element:
@@ -166,6 +175,7 @@ class Group(ModuleCSDL):
 
                 if fpos == 'a': bcnode = beam_nodes[0]
                 elif fpos == 'b': bcnode = beam_nodes[-1]
+                else: raise Exception('Error: invalid boundary condition string')
 
                 # add the bc node to the bc_node_list for future use by global loads:
                 bc_node_list.append(bcnode)
@@ -177,17 +187,9 @@ class Group(ModuleCSDL):
                             # add the constrained dof ID to the bc_id list:
                             bc_id.append(id*6 + i)
 
-        """
-        bc_id = []
-        for node, id in node_id.items():
-            for bc_name in bcond:
-                if bcond[bc_name]['node'] == node:
-                    # iterate over 'fdim' to see which dof's are constrained:
-                    for i, fdim in enumerate(bcond[bc_name]['fdim']):
-                        if fdim == 1:
-                            # add the constrained dof ID to the bc_id list:
-                            bc_id.append(id*6 + i)
-        """
+
+
+
         
 
 
@@ -208,14 +210,13 @@ class Group(ModuleCSDL):
 
 
         # create the global loads vector:
-        if beams:
-            self.add(GlobalLoads(beams=beams,
-                                nodes=nodes,
-                                bcond=bcond,
-                                node_id=node_id,
-                                num_unique_nodes=num_unique_nodes,
-                                bc_node_list=bc_node_list,
-                                ), name='GlobalLoads')
+        self.add(GlobalLoads(beams=beams,
+                            nodes=nodes,
+                            bcond=bcond,
+                            node_id=node_id,
+                            num_unique_nodes=num_unique_nodes,
+                            bc_node_list=bc_node_list,
+                            ), name='GlobalLoads')
         
         F = self.declare_variable('F',shape=(dim),val=0)
 
@@ -271,7 +272,6 @@ class Group(ModuleCSDL):
 
 
         # parse the displacements to get the new nodal coordinates:
-        # coord = self.create_output('coord',shape=(num_elements,2,6)) # (element,node a/node b,(x,y,z,phi,theta,psi))
         for i, element_name in enumerate(options):
             # get the undeformed nodal coordinates:
             node_a = self.declare_variable(element_name+'node_a',shape=(6))
@@ -289,10 +289,6 @@ class Group(ModuleCSDL):
             # assign the elemental output:
             self.register_output(element_name+'node_a_def',node_a + dn1)
             self.register_output(element_name+'node_b_def',node_b + dn2)
-
-            # assign grouped output:
-            # coord[i,0,:] = csdl.reshape(node_a + dn1, (1,1,6))
-            # coord[i,1,:] = csdl.reshape(node_b + dn2, (1,1,6))
 
 
 

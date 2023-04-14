@@ -28,7 +28,7 @@ class Run(csdl.Model):
 
             ds = (b - a)/(num_beam_nodes - 1)
 
-            mesh = self.create_output(beam_name+'mesh',shape=(num_beam_nodes,3),val=0)
+            mesh = self.create_output(beam_name, shape=(num_beam_nodes,3), val=0)
             for i in range(num_beam_nodes):
                 node_i = a + ds*i
                 mesh[i,:] = csdl.reshape(node_i, (1,3))
@@ -57,26 +57,10 @@ if __name__ == '__main__':
 
     bcond, beams = {}, {}
 
-    name = 'b1'
-    beams[name] = {'E': 69E9,
-                   'G': 26E9,
-                   'rho': 2700,
-                   'type': 'tube',
-                   'n': 10,
-                   'a': [0,0,0],
-                   'b': [10,0,0]}
-    """
-    name = 'b1'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 10
     
-    beams[name]['a'] = [0,0,0]
-    beams[name]['b'] = [10,0,0]
-    """
+    name = 'b1'
+    beams[name] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 10,'a': [0,0,0],'b': [10,0,0]}
+
     
     name = 'b2'
     beams[name] = {}

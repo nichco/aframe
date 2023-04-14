@@ -25,7 +25,7 @@ class Run(csdl.Model):
             b = self.create_input(beam_name+'b',shape=(3),val=beams[beam_name]['b'])
             ds = (b - a)/(num_beam_nodes - 1)
 
-            mesh = self.create_output(beam_name+'mesh',shape=(num_beam_nodes,3),val=0)
+            mesh = self.create_output(beam_name, shape=(num_beam_nodes,3), val=0)
             for i in range(num_beam_nodes):
                 node_i = a + ds*i
                 mesh[i,:] = csdl.reshape(node_i, (1,3))
