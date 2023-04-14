@@ -103,8 +103,6 @@ if __name__ == '__main__':
 
 
     for beam_name in beams:
-        #beam_nodes = beams[beam_name]['nodes']
-        #num_beam_nodes = len(beam_nodes)
         num_beam_nodes = beams[beam_name]['n']
         num_elements = num_beam_nodes - 1
 
