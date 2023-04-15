@@ -22,39 +22,30 @@ class GlobalLoads(csdl.Model):
         bc_list = self.parameters['bc_node_list']
         num_beams = len(beams)
 
-        # create a list of bc nodes:
-        #bc_list = [bcond[bc_name]['node'] for bc_name in bcond]
-
-
 
         # create the nodal loads vector:
-
         # if any beams exist in the beams dictionary:
-        if beams:
-            nodal_loads = self.create_output('nodal_loads',shape=(num_beams,num_unique_nodes,6),val=0)
+        nodal_loads = self.create_output('nodal_loads',shape=(num_beams,num_unique_nodes,6),val=0)
+        # iterate over every beam:
+        for i, beam_name in enumerate(beams):
+            #beam_nodes = beams[beam_name]['nodes']
+            beam_nodes = nodes[beam_name]['nodes']
+            num_beam_nodes = len(beam_nodes)
 
-            # iterate over every beam:
-            for i, beam_name in enumerate(beams):
-                #beam_nodes = beams[beam_name]['nodes']
-                beam_nodes = nodes[beam_name]['nodes']
-                num_beam_nodes = len(beam_nodes)
+            # declare the beam loads (default is zero):
+            forces = self.declare_variable(beam_name+'_forces',shape=(num_beam_nodes, 3),val=0)
+            moments = self.declare_variable(beam_name+'_moments',shape=(num_beam_nodes, 3),val=0)
+            # self.print_var(loads)
+            loads =  self.create_output(f'{beam_name}_loads', shape=(num_beam_nodes, 6), val=0)
+            loads[:,0:3] = forces
+            loads[:, 3:6] = moments
+            # iterate over the beam nodes:
+            for j, node in enumerate(beam_nodes):
+                beam_node_id = node_id[node]
 
-                # declare the beam loads (default is zero):
-                forces = self.declare_variable(beam_name+'_forces',shape=(num_beam_nodes, 3),val=0)
-                moments = self.declare_variable(beam_name+'_moments',shape=(num_beam_nodes, 3),val=0)
-                # self.print_var(loads)
-                loads =  self.create_output(f'{beam_name}_loads', shape=(num_beam_nodes, 6), val=0)
-                loads[:,0:3] = forces
-                loads[:, 3:6] = moments
-                # iterate over the beam nodes:
-                for j, node in enumerate(beam_nodes):
-                    beam_node_id = node_id[node]
-
-                    # if the node is not a boundary condition, add the corresponding load:
-                    if node not in bc_list:
-                        nodal_loads[i,beam_node_id,:] = csdl.reshape(loads[j,:], (1,1,6))
-
-        else: nodal_loads = self.declare_variable('nodal_loads',shape=(num_beams,num_unique_nodes,6),val=0)
+                # if the node is not a boundary condition, add the corresponding load:
+                if node not in bc_list:
+                    nodal_loads[i,beam_node_id,:] = csdl.reshape(loads[j,:], (1,1,6))
 
 
 
@@ -69,9 +60,3 @@ class GlobalLoads(csdl.Model):
 
         # self.print_var(F)
 
-
-
-
-if __name__ == '__main__':
-
-    pass
