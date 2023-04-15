@@ -136,7 +136,7 @@ if __name__ == '__main__':
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     ax.set_axis_off()
-    ax.set_box_aspect(aspect = (3,1,1))
+    ax.set_box_aspect(aspect = (3,1,0.75))
 
 
     for beam_name in beams:
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     ax.set_ylim(-38,38)
     ax.set_zlim(-1,2)
 
-    ax.view_init(20, 290)
+    ax.view_init(20, 320)
 
     plt.savefig('plane.png',dpi=1200,bbox_inches='tight',transparent=True)
     plt.show()
