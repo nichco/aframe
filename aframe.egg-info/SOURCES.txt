@@ -1,13 +1,11 @@
 setup.py
 aframe/beam_module.py
-aframe/cg.py
+aframe/boxprop.py
 aframe/globalloads.py
 aframe/group.py
 aframe/localstiffness.py
+aframe/massprop.py
 aframe/model.py
-aframe/run_bridge_beam.py
-aframe/run_genbeam.py
-aframe/run_plane.py
 aframe/sectionproperties.py
 aframe/stress.py
 aframe.egg-info/PKG-INFO

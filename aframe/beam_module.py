@@ -10,22 +10,18 @@ class LinearBeam(MechanicsModel):
         self.parameters.declare('component', default=None)
         self.parameters.declare('mesh', default=None)
         self.parameters.declare('struct_solver', True)
-        self.parameters.declare('E', default=69E9)
-        self.parameters.declare('G', default=26E9)
-        self.parameters.declare('rho', default=2700)
-        self.parameters.declare('type', default='tube')
-        self.parameters.declare('num_nodes', default=None)
+
+        self.parameters.declare('beams', default={})
+        self.parameters.declare('bcond', default={})
         self.parameters.declare('connections', default={})
-        #self.num_nodes = None
+        self.num_nodes = None
 
     def _assemble_csdl(self):
-        E = self.parameters['E']
-        G = self.parameters['G']
-        rho = self.parameters['rho']
-        typ = self.parameters['type']
-        num_nodes = self.parameters['num_nodes']
+        beams = self.parameters['beams']
+        bcond = self.parameters['bcond']
         connections = self.parameters['connections']
 
+        """
         comp = self.parameters['component']
         comp_name = comp.parameters['name']
         beam_name = f'{comp_name}_beam'
@@ -46,7 +42,7 @@ class LinearBeam(MechanicsModel):
         bcond[name]['beam'] = 'b1'
         bcond[name]['fpos'] = 'a'
         bcond[name]['fdim'] = [1, 1, 1, 1, 1, 1]
-
+        """
 
         csdl_model = LinearBeamCSDL(
             beams=beams,  
