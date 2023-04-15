@@ -33,16 +33,15 @@ class Group(ModuleCSDL):
 
 
         # automate the beam node assignment:
-        temp_nodes = {}
-        index = 0
+        temp_nodes, index = {}, 0
         for beam_name in beams:
             temp_nodes[beam_name] = {}
             n = beams[beam_name]['n']
-
             temp_nodes_i = np.arange(index, index + n)
             temp_nodes[beam_name]['nodes'] = temp_nodes_i
             index += n
-
+        
+        
 
         if connections:
             nodes = {}
@@ -62,20 +61,18 @@ class Group(ModuleCSDL):
                     c_pos = connections[cname]['nodes'][i]
 
                     # don't change anything if the beam is the first beam in the connection:
-                    if beam_name == first_beam_name:
-                        nodes[beam_name]['nodes'] = temp_nodes[beam_name]['nodes']
+                    if beam_name == first_beam_name: nodes[beam_name]['nodes'] = temp_nodes[beam_name]['nodes']
                     # change the nodes if the beam is not the first beam in the connection:
                     else:
                         temp = temp_nodes[beam_name]['nodes']
-                        if c_pos == 'a': 
+                        if c_pos == 'a':
                             temp[0] = fb_id
-                        elif c_pos == 'b': 
+                        elif c_pos == 'b':
                             temp[-1] = fb_id
                         else: raise Exception('Error: invalid connection string')
 
                         nodes[beam_name]['nodes'] = temp
-        else:
-            nodes = temp_nodes
+        else: nodes = temp_nodes
 
 
         
@@ -194,8 +191,7 @@ class Group(ModuleCSDL):
         mask_eye = self.create_output('mask_eye',shape=(dim,dim),val=0)
         zero = self.create_input('zero',shape=(1,1),val=0)
         one = self.create_input('one',shape=(1,1),val=1)
-        for i in range(dim):
-            if i in bc_id: mask[i,i], mask_eye[i,i] = 1*zero, 1*one
+        [(mask.__setitem__((i,i),1*zero), mask_eye.__setitem__((i,i),1*one)) for i in range(dim) if i in bc_id]
 
 
         # modify the global stiffness matrix with boundary conditions:
