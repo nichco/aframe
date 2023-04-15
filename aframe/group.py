@@ -6,6 +6,7 @@ from aframe.model import Model
 from aframe.stress import StressTube, StressBox
 from aframe.massprop import MassProp
 from aframe.globalloads import GlobalLoads
+from aframe.boxprop import BoxProp
 from lsdo_modules.module_csdl.module_csdl import ModuleCSDL
 
 
@@ -122,7 +123,8 @@ class Group(ModuleCSDL):
 
 
         
-
+        # compute the widths and height of any box beams from the provided meshes:
+        self.add(BoxProp(beams=beams),name='Boxprop')
 
 
 
@@ -144,8 +146,6 @@ class Group(ModuleCSDL):
         # compute the local stiffness matrix for each element:
         for element_name in options:
             self.add(LocalStiffness(options=options[element_name],name=element_name,dim=dim,node_id=node_id), name=element_name+'LocalStiffness')
-
-        
 
 
         # construct the global stiffness matrix:
@@ -198,7 +198,7 @@ class Group(ModuleCSDL):
         # first remove the row/column with a boundary condition, then add a 1:
         K = csdl.matmat(csdl.matmat(mask, sum_k), mask) + mask_eye
         self.register_output('K', K)
-
+        
 
 
 
