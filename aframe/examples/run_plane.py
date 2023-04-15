@@ -32,7 +32,7 @@ class Run(csdl.Model):
 
 
         w_loads = np.zeros((10,3))
-        w_loads[:,2] = 10
+        w_loads[:,2] = 8
         self.create_input('lwing_forces',shape=(10,3),val=w_loads)
         self.create_input('rwing_forces',shape=(10,3),val=w_loads)
 
@@ -136,7 +136,7 @@ if __name__ == '__main__':
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     ax.set_axis_off()
-    ax.set_box_aspect(aspect = (3,1,0.75))
+    ax.set_box_aspect(aspect = (2.625,1,1))
 
 
     for beam_name in beams:
@@ -153,22 +153,22 @@ if __name__ == '__main__':
             z = np.array([na[2], nb[2]])
 
             ax.plot(x,y,z,color='k',linewidth=0.5)
-            ax.scatter(na[0], na[1], na[2],s=10,color='yellow',edgecolors='black',linewidth=0.5)
-            ax.scatter(nb[0], nb[1], nb[2],s=10,color='yellow',edgecolors='black',linewidth=0.5)
+            ax.scatter(na[0], na[1], na[2],s=7,color='yellow',edgecolors='black',linewidth=0.3)
+            ax.scatter(nb[0], nb[1], nb[2],s=7,color='yellow',edgecolors='black',linewidth=0.3)
 
 
     # plot the cg:
-    cg = sim['cg']
-    cg_def = sim['cg_def']
-    ax.scatter(cg[0],cg[1],cg[2],color='blue',s=30,edgecolors='black',linewidth=0.5)
-    ax.scatter(cg_def[0],cg_def[1],cg_def[2],color='red',s=30,edgecolors='black')
+    #cg = sim['cg']
+    #cg_def = sim['cg_def']
+    #ax.scatter(cg[0],cg[1],cg[2],color='blue',s=30,edgecolors='black',linewidth=0.5)
+    #ax.scatter(cg_def[0],cg_def[1],cg_def[2],color='red',s=30,edgecolors='black')
 
 
     ax.set_xlim(-38,38)
     ax.set_ylim(-38,38)
     ax.set_zlim(-1,2)
 
-    ax.view_init(20, 320)
+    ax.view_init(28, 285)
 
     plt.savefig('plane.png',dpi=1200,bbox_inches='tight',transparent=True)
     plt.show()
