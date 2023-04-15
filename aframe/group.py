@@ -84,7 +84,6 @@ class Group(ModuleCSDL):
         # NOTE: beam_nodes, mesh, and loads must be linearly correlated
         options = {}
         for beam_name in beams:
-            #beam_nodes = beams[beam_name]['nodes']
             beam_nodes = nodes[beam_name]['nodes']
             num_beam_nodes = len(beam_nodes)
             num_elements = num_beam_nodes - 1
@@ -95,6 +94,7 @@ class Group(ModuleCSDL):
             # append zeros:
             dummy_mesh = self.create_output(beam_name+'expanded_mesh',shape=(num_beam_nodes,6),val=0)
 
+            # check mesh units:
             if mesh_units == 'm': dummy_mesh[:,0:3] = 1*mesh
             elif mesh_units == 'ft': dummy_mesh[:,0:3] = mesh/3.2808399
             else: raise Exception('Error: invalid units')
@@ -103,18 +103,10 @@ class Group(ModuleCSDL):
             # create an options dictionary entry for each element:
             for j in range(num_elements):
                 element_name = beam_name + '_element_' + str(j)
-                options[element_name] = {}
-                options[element_name]['E'] = E
-                options[element_name]['G'] = G
-                options[element_name]['rho'] = rho
-                options[element_name]['type'] = type
-                options[element_name]['nodes'] = [beam_nodes[j], beam_nodes[j+1]]
+                options[element_name] = {'E': E,'G': G,'rho': rho,'type': type,'nodes': [beam_nodes[j], beam_nodes[j+1]]}
 
-                na = csdl.reshape(dummy_mesh[j,:], (6))
-                nb = csdl.reshape(dummy_mesh[j+1,:], (6))
-
-                self.register_output(element_name+'node_a',na)
-                self.register_output(element_name+'node_b',nb)
+                self.register_output(element_name+'node_a',csdl.reshape(dummy_mesh[j,:], (6)))
+                self.register_output(element_name+'node_b',csdl.reshape(dummy_mesh[j+1,:], (6)))
 
 
 
@@ -245,7 +237,6 @@ class Group(ModuleCSDL):
         
 
         # recover the local elemental forces/moments (fp):
-        local_loads = self.create_output('local_loads',shape=(num_elements,12),val=0)
         for i, element_name in enumerate(options):
             # get the nodes and the node ID's:
             node_1, node_2 =  options[element_name]['nodes'][0], options[element_name]['nodes'][1]
@@ -263,10 +254,6 @@ class Group(ModuleCSDL):
             # declare the variables for the local stiffness matrix and the element transformation matrix:
             kp = self.declare_variable(element_name+'kp',shape=(12,12))
             T = self.declare_variable(element_name+'T',shape=(12,12))
-
-            # solve for the local loads:
-            # group output (required for plotting and post processing):
-            local_loads[i,:] = csdl.reshape(csdl.matvec(kp,csdl.matvec(T,d)), (1,12))
 
             # element output (required for the stress recovery):
             self.register_output(element_name+'local_loads', csdl.matvec(kp,csdl.matvec(T,d)))
