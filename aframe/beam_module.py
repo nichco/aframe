@@ -12,14 +12,14 @@ class LinearBeam(MechanicsModel):
         self.parameters.declare('struct_solver', True)
 
         self.parameters.declare('beams', default={})
-        self.parameters.declare('bcond', default={})
-        self.parameters.declare('connections', default={})
+        self.parameters.declare('bounds', default={})
+        self.parameters.declare('joints', default={})
         self.num_nodes = None
 
     def _assemble_csdl(self):
         beams = self.parameters['beams']
-        bcond = self.parameters['bcond']
-        connections = self.parameters['connections']
+        bounds = self.parameters['bounds']
+        joints = self.parameters['joints']
 
         """
         comp = self.parameters['component']
@@ -46,8 +46,8 @@ class LinearBeam(MechanicsModel):
 
         csdl_model = LinearBeamCSDL(
             beams=beams,  
-            bcond=bcond,
-            connections=connections,
+            bounds=bounds,
+            joints=joints,
         )
 
         return csdl_model
@@ -63,16 +63,16 @@ class LinearBeamMesh(Module):
 class LinearBeamCSDL(ModuleCSDL):
     def initialize(self):
         self.parameters.declare('beams')
-        self.parameters.declare('bcond')
-        self.parameters.declare('connections')
+        self.parameters.declare('bounds')
+        self.parameters.declare('joints')
     
     def define(self):
         beams = self.parameters['beams']
-        bcond = self.parameters['bcond']
-        connections = self.parameters['connections']
+        bounds = self.parameters['bounds']
+        joints = self.parameters['joints']
 
 
         # solve the beam group:
-        self.add_module(BeamGroup(beams=beams,connections=connections,bcond=bcond,mesh_units='ft'), name='Group')
+        self.add_module(BeamGroup(beams=beams,bounds=bounds,joints=joints,mesh_units='ft'), name='Group')
 
         #self.register_module_output('mass')

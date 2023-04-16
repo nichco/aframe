@@ -15,13 +15,15 @@ from aframe.sectionproperties import SectionPropertiesBox, SectionPropertiesRect
 
 class BeamGroup(ModuleCSDL):
     def initialize(self):
-        self.parameters.declare('beams')
-        self.parameters.declare('joints')
-        self.parameters.declare('bounds')
+        self.parameters.declare('beams',default={})
+        self.parameters.declare('joints',default={})
+        self.parameters.declare('bounds',default={})
+        self.parameters.declare('mesh_units',default='m')
     def define(self):
         beams = self.parameters['beams']
         joints = self.parameters['joints']
         bounds = self.parameters['bounds']
+        mesh_units = self.parameters['mesh_units']
 
 
         # error handling
@@ -61,8 +63,12 @@ class BeamGroup(ModuleCSDL):
         for beam_name in beams:
             n = beams[beam_name]['n']
             rho, typ = beams[beam_name]['rho'], beams[beam_name]['type']
+
             # register the mesh input:
-            mesh = self.register_module_input(beam_name,shape=(n,3), promotes=True)
+            mesh_input = self.register_module_input(beam_name,shape=(n,3), promotes=True)
+
+            if mesh_units == 'ft': mesh = mesh_input/3.281
+            elif mesh_units == 'm': mesh = mesh_input
 
             # iterate over the beam elements:
             for i in range(n - 1):
@@ -98,8 +104,14 @@ class BeamGroup(ModuleCSDL):
                 radius = self.declare_variable(beam_name+'radius',shape=(n - 1),val=0.25)
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)
-                    self.register_output(element_name+'thickness',1*thickness[i])
-                    self.register_output(element_name+'radius',1*radius[i])
+
+                    if mesh_units == 'ft':
+                        self.register_output(element_name+'thickness',thickness[i]/3.281)
+                        self.register_output(element_name+'radius',radius[i]/3.281)
+
+                    elif mesh_units == 'm':
+                        self.register_output(element_name+'thickness',1*thickness[i])
+                        self.register_output(element_name+'radius',1*radius[i])
 
             elif beams[beam_name]['type'] == 'box':
                 width = self.declare_variable(beam_name+'width',shape=(n - 1),val=0.5)
@@ -108,10 +120,18 @@ class BeamGroup(ModuleCSDL):
                 t_cap = self.declare_variable(beam_name+'t_cap',shape=(n - 1),val=0.001)
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)
-                    self.register_output(element_name+'width',1*width[i])
-                    self.register_output(element_name+'height',1*height[i])
-                    self.register_output(element_name+'t_web',1*t_web[i])
-                    self.register_output(element_name+'t_cap',1*t_cap[i])
+
+                    if mesh_units == 'ft':
+                        self.register_output(element_name+'width',width[i]/3.281)
+                        self.register_output(element_name+'height',height[i]/3.281)
+                        self.register_output(element_name+'t_web',t_web[i]/3.281)
+                        self.register_output(element_name+'t_cap',t_cap[i]/3.281)
+
+                    elif mesh_units == 'm':
+                        self.register_output(element_name+'width',1*width[i])
+                        self.register_output(element_name+'height',1*height[i])
+                        self.register_output(element_name+'t_web',1*t_web[i])
+                        self.register_output(element_name+'t_cap',1*t_cap[i])
 
 
         # compute the section properties for each element:
