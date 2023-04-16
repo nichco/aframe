@@ -95,10 +95,23 @@ class BeamGroup(ModuleCSDL):
 
             if beams[beam_name]['type'] == 'tube':
                 thickness = self.declare_variable(beam_name+'thickness',shape=(n - 1),val=0.001)
-
+                radius = self.declare_variable(beam_name+'radius',shape=(n - 1),val=0.25)
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)
                     self.register_output(element_name+'thickness',1*thickness[i])
+                    self.register_output(element_name+'radius',1*radius[i])
+
+            elif beams[beam_name]['type'] == 'box':
+                width = self.declare_variable(beam_name+'width',shape=(n - 1),val=0.5)
+                height = self.declare_variable(beam_name+'height',shape=(n - 1),val=0.25)
+                t_web = self.declare_variable(beam_name+'t_web',shape=(n - 1),val=0.001)
+                t_cap = self.declare_variable(beam_name+'t_cap',shape=(n - 1),val=0.001)
+                for i in range(n - 1):
+                    element_name = beam_name + '_element_' + str(i)
+                    self.register_output(element_name+'width',1*width[i])
+                    self.register_output(element_name+'height',1*height[i])
+                    self.register_output(element_name+'t_web',1*t_web[i])
+                    self.register_output(element_name+'t_cap',1*t_cap[i])
 
 
         # compute the section properties for each element:

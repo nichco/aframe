@@ -42,6 +42,7 @@ class Run(csdl.Model):
 
 
         self.create_input('b1thickness',shape=(9),val=0.002)
+        self.create_input('b1radius',shape=(9),val=0.25)
         
         # solve the beam group:
         self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')
@@ -50,6 +51,7 @@ class Run(csdl.Model):
         self.add_constraint('max_stress',upper=450E6/3,scaler=1E-8)
 
         self.add_design_variable('b1thickness',lower=0.0001,scaler=10)
+        self.add_design_variable('b1radius',lower=0.1,upper=0.5,scaler=1)
         self.add_objective('total_mass',scaler=1E-2)
         
         
@@ -107,8 +109,10 @@ if __name__ == '__main__':
     U = sim['U']
     vonmises_stress = sim['vonmises_stress']
     b1thickness = sim['b1thickness']
+    b1radius = sim['b1radius']
     print(vonmises_stress)
     print(b1thickness)
+    print(b1radius)
     print(sim['total_mass'])
 
     
