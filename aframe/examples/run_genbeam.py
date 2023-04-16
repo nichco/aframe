@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     
     name = 'b1'
-    beams[name] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 10,'a': [0,0,0],'b': [10,0,0]}
+    beams[name] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'box','n': 10,'a': [0,0,0],'b': [10,0,0]}
 
     
     name = 'b2'
