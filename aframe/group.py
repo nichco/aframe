@@ -124,8 +124,17 @@ class Group(ModuleCSDL):
 
         
         # compute the widths and height of any box beams from the provided meshes:
-        self.add(BoxProp(beams=beams),name='Boxprop')
+        #self.add(BoxProp(beams=beams),name='Boxprop')
+        for beam_name in beams:
+            num_beam_nodes = beams[beam_name]['n']
 
+            if beams[beam_name]['type'] == 'tube':
+                thickness = self.declare_variable(beam_name+'thickness',shape=(num_beam_nodes - 1),val=0.001)
+
+                for i in range(num_beam_nodes - 1):
+                    element_name = beam_name + '_element_' + str(i)
+                    self.register_output(element_name+'thickness',1*thickness[i])
+        
 
 
         # compute the section properties for each element:
@@ -299,6 +308,9 @@ class Group(ModuleCSDL):
             else:
                 raise NotImplementedError('Error: stress recovery for [beam type] is not implemented')
 
+
+        max_stress = csdl.max(vonmises_stress)
+        self.register_output('max_stress',max_stress)
 
         
         # compute the cg and moi:

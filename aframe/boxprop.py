@@ -25,5 +25,5 @@ class BoxProp(csdl.Model):
             for i in range(num_elements):
                 element_name = beam_name + '_element_' + str(i)
 
-                self.register_output(element_name+'width', width[i])
+                self.register_output(element_name+'width', 1*width[i])
                 #self.register_output(element_name+'height', height[i])
