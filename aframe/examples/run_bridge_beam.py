@@ -9,12 +9,12 @@ from aframe.beamgroup import BeamGroup
 class Run(csdl.Model):
     def initialize(self):
         self.parameters.declare('beams',default={})
-        self.parameters.declare('bcond',default={})
-        self.parameters.declare('connections',default={})
+        self.parameters.declare('bounds',default={})
+        self.parameters.declare('joints',default={})
     def define(self):
         beams = self.parameters['beams']
-        bcond = self.parameters['bcond']
-        connections = self.parameters['connections']
+        bounds = self.parameters['bounds']
+        joints = self.parameters['joints']
 
 
         # dummy mesh generation code:
@@ -38,7 +38,7 @@ class Run(csdl.Model):
         self.create_input('b4_forces',shape=(5,3),val=dummy_loads)
 
         # solve the beam group:
-        self.add(BeamGroup(beams=beams,bcond=bcond,connections=connections), name='BeamGroup')
+        self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')
 
 
 
@@ -47,7 +47,7 @@ class Run(csdl.Model):
 
 if __name__ == '__main__':
 
-    beams, bcond, connections = {}, {}, {}
+    beams, bounds, joints = {}, {}, {}
 
 
     beams['b1'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [0,0,0],'b': [1,0,0]}
@@ -66,59 +66,59 @@ if __name__ == '__main__':
 
     # boundary conditions:
     name = 'fixed_left'
-    bcond[name] = {}
-    bcond[name]['beam'] = 'b1'
-    bcond[name]['fpos'] = 'a'
-    bcond[name]['fdim'] = [1,1,1,1,1,1] # x, y, z, phi, theta, psi: a 1 indicates the corresponding dof is fixed
+    bounds[name] = {}
+    bounds[name]['beam'] = 'b1'
+    bounds[name]['fpos'] = 'a'
+    bounds[name]['fdim'] = [1,1,1,1,1,1] # x, y, z, phi, theta, psi: a 1 indicates the corresponding dof is fixed
 
     name = 'fixed_right'
-    bcond[name] = {}
-    bcond[name]['beam'] = 'b10'
-    bcond[name]['fpos'] = 'b'
-    bcond[name]['fdim'] = [1,1,1,1,1,1]
+    bounds[name] = {}
+    bounds[name]['beam'] = 'b10'
+    bounds[name]['fpos'] = 'b'
+    bounds[name]['fdim'] = [1,1,1,1,1,1]
 
 
-    # connections:
+    # joints:
     name = 'c1'
-    connections[name] = {}
-    connections[name]['beam_names'] = ['b1','b2']
-    connections[name]['nodes'] = ['a','a'] # connects the end of b1 to the start of b2
+    joints[name] = {}
+    joints[name]['beam_names'] = ['b1','b2']
+    joints[name]['nodes'] = ['a','a'] # connects the end of b1 to the start of b2
 
     name = 'c2'
-    connections[name] = {}
-    connections[name]['beam_names'] = ['b2','b3','b4']
-    connections[name]['nodes'] = ['b','a','a']
+    joints[name] = {}
+    joints[name]['beam_names'] = ['b2','b3','b4']
+    joints[name]['nodes'] = ['b','a','a']
 
     name = 'c3'
-    connections[name] = {}
-    connections[name]['beam_names'] = ['b1','b3','b5','b6']
-    connections[name]['nodes'] = ['b','b','a','a']
+    joints[name] = {}
+    joints[name]['beam_names'] = ['b1','b3','b5','b6']
+    joints[name]['nodes'] = ['b','b','a','a']
 
     name = 'c4'
-    connections[name] = {}
-    connections[name]['beam_names'] = ['b4','b5','b7','b8']
-    connections[name]['nodes'] = ['b','b','a','a']
+    joints[name] = {}
+    joints[name]['beam_names'] = ['b4','b5','b7','b8']
+    joints[name]['nodes'] = ['b','b','a','a']
 
     name = 'c5'
-    connections[name] = {}
-    connections[name]['beam_names'] = ['b6','b7','b9','b10']
-    connections[name]['nodes'] = ['b','b','a','a']
+    joints[name] = {}
+    joints[name]['beam_names'] = ['b6','b7','b9','b10']
+    joints[name]['nodes'] = ['b','b','a','a']
 
     name = 'c6'
-    connections[name] = {}
-    connections[name]['beam_names'] = ['b8','b9','b11']
-    connections[name]['nodes'] = ['b','b','a']
+    joints[name] = {}
+    joints[name]['beam_names'] = ['b8','b9','b11']
+    joints[name]['nodes'] = ['b','b','a']
 
     name = 'c7'
-    connections[name] = {}
-    connections[name]['beam_names'] = ['b10','b11']
-    connections[name]['nodes'] = ['b','b']
+    joints[name] = {}
+    joints[name]['beam_names'] = ['b10','b11']
+    joints[name]['nodes'] = ['b','b']
 
 
 
 
 
-    sim = python_csdl_backend.Simulator(Run(beams=beams,bcond=bcond,connections=connections))
+    sim = python_csdl_backend.Simulator(Run(beams=beams,bounds=bounds,joints=joints))
     sim.run()
 
 
@@ -131,8 +131,8 @@ if __name__ == '__main__':
 
         for i in range(num_elements):
             element_name = beam_name + '_element_' + str(i)
-            a = sim[element_name+'node_a']
-            b = sim[element_name+'node_b']
+            a = sim[element_name+'node_a_position']
+            b = sim[element_name+'node_b_position']
 
             xu = np.array([a[0],b[0]])
             yu = np.array([a[1],b[1]])

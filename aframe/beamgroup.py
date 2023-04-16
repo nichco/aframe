@@ -89,8 +89,7 @@ class BeamGroup(ModuleCSDL):
 
 
 
-        # compute the widths and height of any box beams from the provided meshes:
-        #self.add(BoxProp(beams=beams),name='Boxprop')
+        # parse the cross section parameter meshes:
         for beam_name in beams:
             n = beams[beam_name]['n']
 
