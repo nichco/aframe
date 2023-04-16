@@ -142,6 +142,9 @@ class BeamGroup(ModuleCSDL):
                         self.register_output(element_name+'t_cap',1*t_cap[i])
 
 
+
+
+
         # compute the section properties for each element:
         for element_name in elements:
             if elements[element_name]['type'] == 'tube':
@@ -151,6 +154,9 @@ class BeamGroup(ModuleCSDL):
             elif elements[element_name]['type'] == 'rect': 
                 self.add(SectionPropertiesRect(element_name=element_name), name=element_name+'SectionPropertiesRect')
             else: raise NotImplementedError('Error: type for' + element_name + 'is not implemented')
+
+
+
 
 
 
@@ -168,12 +174,18 @@ class BeamGroup(ModuleCSDL):
 
 
 
+
+
+
         # solve the linear system
         solve_res = self.create_implicit_operation(Model(dim=dim))
         solve_res.declare_state(state='U', residual='R')
         solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-5,)
         solve_res.linear_solver = csdl.ScipyKrylov()
         U = solve_res(K, F)
+
+
+
 
 
 
@@ -196,23 +208,25 @@ class BeamGroup(ModuleCSDL):
 
 
 
+
+
+
         # parse the displacements to get the new nodal coordinates:
         for element_name in elements:
             # get the undeformed nodal coordinates:
             node_a_position = self.declare_variable(element_name+'node_a_position',shape=(3))
             node_b_position = self.declare_variable(element_name+'node_b_position',shape=(3))
-
             # get the nodes and the node ID's:
             node_a, node_b =  elements[element_name]['node_a'], elements[element_name]['node_b']
             node_a_index, node_b_index = node_index[node_a], node_index[node_b]
-
             # get the nodal displacements for the current element:
             dn1 = U[node_a_index*6:node_a_index*6 + 3] # node 1 displacements
             dn2 = U[node_b_index*6:node_b_index*6 + 3] # node 2 displacements
-
             # assign the elemental output:
             self.register_output(element_name+'node_a_def',node_a_position + dn1)
             self.register_output(element_name+'node_b_def',node_b_position + dn2)
+
+
 
 
 
@@ -222,9 +236,6 @@ class BeamGroup(ModuleCSDL):
             if elements[element_name]['type'] == 'tube': 
                 self.add(StressTube(name=element_name), name=element_name+'Stress')
                 vonmises_stress[i] = self.declare_variable(element_name+'s_vm')
-
-            elif elements[element_name]['type'] == 'rect':
-                raise NotImplementedError('Error: stress recovery for rectangular beams is not implemented')
             
             elif elements[element_name]['type'] == 'box':
                 self.add(StressBox(name=element_name), name=element_name+'Stress')
@@ -233,12 +244,12 @@ class BeamGroup(ModuleCSDL):
             else: raise NotImplementedError('Error: stress recovery for [beam type] is not implemented')
 
 
-
+        # compute the maximum stress in the entire system:
         max_stress = csdl.max(vonmises_stress)
         self.register_output('max_stress',max_stress)
 
+
+
         
-
-
         # compute the cg and moi:
         self.add(MassProp(elements=elements), name='MassProp')
