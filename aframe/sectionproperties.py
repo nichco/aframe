@@ -1,16 +1,15 @@
 import numpy as np
 import csdl
-import python_csdl_backend
 
 
 
 
 class SectionPropertiesTube(csdl.Model):
     def initialize(self):
-        self.parameters.declare('name')
+        self.parameters.declare('element_name')
 
     def define(self):
-        name = self.parameters['name']
+        name = self.parameters['element_name']
 
         radius = self.declare_variable(name+'radius',val=0.125)
         thickness = self.declare_variable(name+'thickness',val=0.001)
@@ -20,6 +19,7 @@ class SectionPropertiesTube(csdl.Model):
 
         # Compute the area, area moments of inertia, and polar moment of inertia
         A = np.pi * (r2**2 - r1**2)
+        #self.print_var(A)
         Iy = np.pi * (r2**4 - r1**4) / 4.0
         Iz = np.pi * (r2**4 - r1**4) / 4.0
         J = np.pi * (r2**4 - r1**4) / 2.0
@@ -34,10 +34,10 @@ class SectionPropertiesTube(csdl.Model):
 
 class SectionPropertiesRect(csdl.Model):
     def initialize(self):
-        self.parameters.declare('name')
+        self.parameters.declare('element_name')
 
     def define(self):
-        name = self.parameters['name']
+        name = self.parameters['element_name']
 
         width = self.declare_variable(name+'width',val=0.1)
         height = self.declare_variable(name+'height',val=0.1)
@@ -61,10 +61,10 @@ class SectionPropertiesRect(csdl.Model):
 
 class SectionPropertiesBox(csdl.Model):
     def initialize(self):
-        self.parameters.declare('name')
+        self.parameters.declare('element_name')
 
     def define(self):
-        name = self.parameters['name']
+        name = self.parameters['element_name']
 
         width = self.declare_variable(name+'width',val=0.1)
         height = self.declare_variable(name+'height',val=0.25)

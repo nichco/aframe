@@ -2,19 +2,19 @@ import numpy as np
 import csdl
 import python_csdl_backend
 import matplotlib.pyplot as plt
-from aframe.group import Group
+from aframe.beamgroup import BeamGroup
 
 
 
 class Run(csdl.Model):
     def initialize(self):
         self.parameters.declare('beams',default={})
-        self.parameters.declare('bcond',default={})
-        self.parameters.declare('connections',default={})
+        self.parameters.declare('bounds',default={})
+        self.parameters.declare('joints',default={})
     def define(self):
         beams = self.parameters['beams']
-        bcond = self.parameters['bcond']
-        connections = self.parameters['connections']
+        bounds = self.parameters['bounds']
+        joints = self.parameters['joints']
 
         
         # dummy mesh generation code:
@@ -38,11 +38,11 @@ class Run(csdl.Model):
         self.create_input('b1_forces',shape=(10,3),val=dummy_loads)
 
 
-
+        self.create_input('b1thickness',shape=(9),val=0.001)
 
         
         # solve the beam group:
-        self.add(Group(beams=beams,bcond=bcond,connections=connections), name='Group')
+        self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')
         
         
 
@@ -53,7 +53,7 @@ class Run(csdl.Model):
 
 if __name__ == '__main__':
 
-    bcond, beams = {}, {}
+    joints, bounds, beams = {}, {}, {}
 
     
     name = 'b1'
@@ -73,29 +73,29 @@ if __name__ == '__main__':
     
 
     name = 'root'
-    bcond[name] = {}
-    bcond[name]['beam'] = 'b1'
-    bcond[name]['fpos'] = 'a'
-    bcond[name]['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
+    bounds[name] = {}
+    bounds[name]['beam'] = 'b1'
+    bounds[name]['fpos'] = 'a'
+    bounds[name]['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
 
-
-    connections = {}
     
     name = 'c1'
-    connections[name] = {}
-    connections[name]['beam_names'] = ['b1','b2']
-    connections[name]['nodes'] = ['b','a'] # connects the end of b1 to the start of b2
+    joints[name] = {}
+    joints[name]['beam_names'] = ['b1','b2']
+    joints[name]['nodes'] = ['b','a'] # connects the end of b1 to the start of b2
 
 
 
 
-    sim = python_csdl_backend.Simulator(Run(beams=beams,bcond=bcond,connections=connections))
+    sim = python_csdl_backend.Simulator(Run(beams=beams,bounds=bounds,joints=joints))
     sim.run()
 
     
     U = sim['U']
     vonmises_stress = sim['vonmises_stress']
     #print(vonmises_stress)
+
+    print(sim['total_mass'])
 
     
     fig = plt.figure()

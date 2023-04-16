@@ -1,22 +1,20 @@
 import numpy as np
 import csdl
-import python_csdl_backend
 
 
 
 class MassProp(csdl.Model):
     def initialize(self):
-        self.parameters.declare('options')
+        self.parameters.declare('elements')
     def define(self):
-        options = self.parameters['options']
+        elements = self.parameters['elements']
 
         # calculate the mass and the position of each element:
-        rm_vec = self.create_output('rm_vec',shape=(len(options),3),val=0)
-        rm_vec_def = self.create_output('rm_vec_def',shape=(len(options),3),val=0)
-        m_vec = self.create_output('m_vec',shape=(len(options)),val=0)
-        for i, element_name in enumerate(options):
-            element = options[element_name]
-            rho = element['rho']
+        rm_vec = self.create_output('rm_vec',shape=(len(elements),3),val=0)
+        rm_vec_def = self.create_output('rm_vec_def',shape=(len(elements),3),val=0)
+        m_vec = self.create_output('m_vec',shape=(len(elements)),val=0)
+        for i, element_name in enumerate(elements):
+            rho = elements[element_name]['rho']
 
             A = self.declare_variable(element_name+'A')
             L = self.declare_variable(element_name+'L')
@@ -34,8 +32,8 @@ class MassProp(csdl.Model):
             r_b = self.declare_variable(element_name+'node_b',shape=(6))[0:3]
 
             # get the (undeformed) position vector of the cg for each element:
-            r_a_def = self.declare_variable(element_name+'node_a_def',shape=(6))[0:3]
-            r_b_def = self.declare_variable(element_name+'node_b_def',shape=(6))[0:3]
+            r_a_def = self.declare_variable(element_name+'node_a_def',shape=(3))
+            r_b_def = self.declare_variable(element_name+'node_b_def',shape=(3))
 
             r_cg = (r_a + r_b)/2
             r_cg_def = (r_a_def + r_b_def)/2
@@ -65,11 +63,11 @@ class MassProp(csdl.Model):
 
         
         # compute moments of inertia:
-        eixx = self.create_output('eixx',shape=(len(options)),val=0)
-        eiyy = self.create_output('eiyy',shape=(len(options)),val=0)
-        eizz = self.create_output('eizz',shape=(len(options)),val=0)
-        eixz = self.create_output('eixz',shape=(len(options)),val=0)
-        for i, element_name in enumerate(options):
+        eixx = self.create_output('eixx',shape=(len(elements)),val=0)
+        eiyy = self.create_output('eiyy',shape=(len(elements)),val=0)
+        eizz = self.create_output('eizz',shape=(len(elements)),val=0)
+        eixz = self.create_output('eixz',shape=(len(elements)),val=0)
+        for i, element_name in enumerate(elements):
 
             # get the mass:
             m = m_vec[i]

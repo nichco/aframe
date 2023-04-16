@@ -1,16 +1,13 @@
 import numpy as np
 import csdl
-import python_csdl_backend
 
 
 
 
 class StressTube(csdl.Model):
     def initialize(self):
-        self.parameters.declare('options')
         self.parameters.declare('name')
     def define(self):
-        options = self.parameters['options']
         name = self.parameters['name']
 
         A = self.declare_variable(name+'A')
@@ -63,10 +60,8 @@ the stress for box beams is evaluated at four points:
 """
 class StressBox(csdl.Model):
     def initialize(self):
-        self.parameters.declare('options')
         self.parameters.declare('name')
     def define(self):
-        options = self.parameters['options']
         name = self.parameters['name']
 
         A = self.declare_variable(name+'A')

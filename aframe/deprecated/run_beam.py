@@ -2,7 +2,7 @@ import numpy as np
 import csdl
 import python_csdl_backend
 import matplotlib.pyplot as plt
-from aframe.group import Group
+from aframe.beamgroup import Group
 
 
 

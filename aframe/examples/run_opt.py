@@ -2,7 +2,7 @@ import numpy as np
 import csdl
 import python_csdl_backend
 import matplotlib.pyplot as plt
-from aframe.group import Group
+from aframe.beamgroup import BeamGroup
 from modopt.scipy_library import SLSQP
 from modopt.csdl_library import CSDLProblem
 
@@ -11,12 +11,12 @@ from modopt.csdl_library import CSDLProblem
 class Run(csdl.Model):
     def initialize(self):
         self.parameters.declare('beams',default={})
-        self.parameters.declare('bcond',default={})
-        self.parameters.declare('connections',default={})
+        self.parameters.declare('bounds',default={})
+        self.parameters.declare('joints',default={})
     def define(self):
         beams = self.parameters['beams']
-        bcond = self.parameters['bcond']
-        connections = self.parameters['connections']
+        bounds = self.parameters['bounds']
+        joints = self.parameters['joints']
 
         
         # dummy mesh generation code:
@@ -36,24 +36,20 @@ class Run(csdl.Model):
 
 
         dummy_loads = np.zeros((10,3))
-        dummy_loads[-1,2] = 100
+        dummy_loads[-1,2] = 150
         self.create_input('b1_forces',shape=(10,3),val=dummy_loads)
 
 
 
-
+        self.create_input('b1thickness',shape=(9),val=0.002)
         
         # solve the beam group:
-        self.add(Group(beams=beams,bcond=bcond,connections=connections), name='Group')
+        self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')
 
 
+        self.add_constraint('max_stress',upper=450E6/3,scaler=1E-8)
 
-        thickness = self.create_input('b1thickness',shape=(9),val=0.001)
-
-
-        self.add_constraint('max_stress',upper=450E6,scaler=1E-8)
-
-        self.add_design_variable('b1thickness',lower=0.0005,scaler=10)
+        self.add_design_variable('b1thickness',lower=0.0001,scaler=10)
         self.add_objective('total_mass',scaler=1E-2)
         
         
@@ -65,7 +61,7 @@ class Run(csdl.Model):
 
 if __name__ == '__main__':
 
-    bcond, beams = {}, {}
+    joints, bounds, beams = {}, {}, {}
 
     
     name = 'b1'
@@ -85,23 +81,21 @@ if __name__ == '__main__':
     
 
     name = 'root'
-    bcond[name] = {}
-    bcond[name]['beam'] = 'b1'
-    bcond[name]['fpos'] = 'a'
-    bcond[name]['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
+    bounds[name] = {}
+    bounds[name]['beam'] = 'b1'
+    bounds[name]['fpos'] = 'a'
+    bounds[name]['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
 
-
-    connections = {}
     
     name = 'c1'
-    connections[name] = {}
-    connections[name]['beam_names'] = ['b1','b2']
-    connections[name]['nodes'] = ['b','a'] # connects the end of b1 to the start of b2
+    joints[name] = {}
+    joints[name]['beam_names'] = ['b1','b2']
+    joints[name]['nodes'] = ['b','a'] # connects the end of b1 to the start of b2
 
 
 
 
-    sim = python_csdl_backend.Simulator(Run(beams=beams,bcond=bcond,connections=connections))
+    sim = python_csdl_backend.Simulator(Run(beams=beams,bounds=bounds,joints=joints))
     #sim.run()
 
     prob = CSDLProblem(problem_name='run_opt', simulator=sim)
@@ -112,7 +106,10 @@ if __name__ == '__main__':
     
     U = sim['U']
     vonmises_stress = sim['vonmises_stress']
-    #print(vonmises_stress)
+    b1thickness = sim['b1thickness']
+    print(vonmises_stress)
+    print(b1thickness)
+    print(sim['total_mass'])
 
     
     fig = plt.figure()
@@ -148,7 +145,7 @@ if __name__ == '__main__':
 
     ax.set_xlim(0,10)
     ax.set_ylim(-1,1)
-    ax.set_zlim(-0.4,0.1)
+    ax.set_zlim(-0.5,0.5)
     plt.show()
     
 

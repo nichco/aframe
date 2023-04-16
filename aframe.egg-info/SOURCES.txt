@@ -1,9 +1,9 @@
 setup.py
 aframe/beam_module.py
-aframe/boxprop.py
+aframe/beamgroup.py
+aframe/globalk.py
 aframe/globalloads.py
-aframe/group.py
-aframe/localstiffness.py
+aframe/localk.py
 aframe/massprop.py
 aframe/model.py
 aframe/sectionproperties.py
