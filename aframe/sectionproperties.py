@@ -66,10 +66,10 @@ class SectionPropertiesBox(csdl.Model):
     def define(self):
         name = self.parameters['element_name']
 
-        width = self.declare_variable(name+'width',val=0.1)
-        height = self.declare_variable(name+'height',val=0.25)
-        t_web = self.declare_variable(name+'t_web',val=0.001)
-        t_cap = self.declare_variable(name+'t_cap',val=0.001)
+        width = self.declare_variable(name+'width')
+        height = self.declare_variable(name+'height')
+        t_web = self.declare_variable(name+'t_web')
+        t_cap = self.declare_variable(name+'t_cap')
 
         width_i = width - 2*t_web
         height_i = height - 2*t_cap

@@ -13,6 +13,7 @@ class MassProp(csdl.Model):
         rm_vec = self.create_output('rm_vec',shape=(len(elements),3),val=0)
         rm_vec_def = self.create_output('rm_vec_def',shape=(len(elements),3),val=0)
         m_vec = self.create_output('m_vec',shape=(len(elements)),val=0)
+        
         for i, element_name in enumerate(elements):
             rho = elements[element_name]['rho']
 

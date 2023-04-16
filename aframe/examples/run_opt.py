@@ -41,17 +41,25 @@ class Run(csdl.Model):
 
 
 
-        self.create_input('b1thickness',shape=(9),val=0.002)
-        self.create_input('b1radius',shape=(9),val=0.25)
+        #self.create_input('b1thickness',shape=(9),val=0.002)
+        #self.create_input('b1radius',shape=(9),val=0.25)
+        self.create_input('b1height',shape=(10),val=0.5)
+        self.create_input('b1width',shape=(10),val=0.25)
+        self.create_input('b1t_web',shape=(9),val=0.001)
+        self.create_input('b1t_cap',shape=(9),val=0.001)
         
         # solve the beam group:
         self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')
 
 
-        self.add_constraint('max_stress',upper=450E6/3,scaler=1E-8)
+        self.add_constraint('max_stress',upper=450E6/4,scaler=1E-8)
 
-        self.add_design_variable('b1thickness',lower=0.0001,scaler=10)
-        self.add_design_variable('b1radius',lower=0.1,upper=0.5,scaler=1)
+        #self.add_design_variable('b1thickness',lower=0.0001,scaler=10)
+        #self.add_design_variable('b1radius',lower=0.1,upper=0.5,scaler=1)
+        self.add_design_variable('b1height',lower=0.1,upper=1,scaler=1)
+        self.add_design_variable('b1width',lower=0.1,upper=1,scaler=1)
+        self.add_design_variable('b1t_web',lower=1E-8,upper=0.01,scaler=1E6)
+        self.add_design_variable('b1t_cap',lower=1E-8,upper=0.01,scaler=1E6)
         self.add_objective('total_mass',scaler=1E-2)
         
         
@@ -67,7 +75,7 @@ if __name__ == '__main__':
 
     
     name = 'b1'
-    beams[name] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 10,'a': [0,0,0],'b': [10,0,0]}
+    beams[name] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'box','n': 10,'a': [0,0,0],'b': [10,0,0]}
 
     
     name = 'b2'
@@ -101,18 +109,24 @@ if __name__ == '__main__':
     #sim.run()
 
     prob = CSDLProblem(problem_name='run_opt', simulator=sim)
-    optimizer = SLSQP(prob, maxiter=1000, ftol=1E-6)
+    optimizer = SLSQP(prob, maxiter=1000, ftol=1E-8)
     optimizer.solve()
     optimizer.print_results()
 
     
     U = sim['U']
     vonmises_stress = sim['vonmises_stress']
-    b1thickness = sim['b1thickness']
-    b1radius = sim['b1radius']
-    print(vonmises_stress)
-    print(b1thickness)
-    print(b1radius)
+    #b1thickness = sim['b1thickness']
+    #b1radius = sim['b1radius']
+    b1height = sim['b1height']
+    b1width = sim['b1width']
+    b1t_web = sim['b1t_web']
+    b1t_cap = sim['b1t_cap']
+    print('stress: ', vonmises_stress)
+    print('height: ', b1height)
+    print('width: ', b1width)
+    print('t_web: ', b1t_web)
+    print('t_cap: ', b1t_cap)
     print(sim['total_mass'])
 
     
