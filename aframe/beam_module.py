@@ -25,23 +25,6 @@ class LinearBeam(MechanicsModel):
         comp = self.parameters['component']
         comp_name = comp.parameters['name']
         beam_name = f'{comp_name}_beam'
-
-        beams = dict()
-        beams[beam_name] = dict(
-            num_nodes=num_nodes,
-            E=E,
-            G=G,
-            rho=rho,
-            type=typ,
-        )
-        
-
-        bcond = {}
-        name = 'root'
-        bcond[name] = {}
-        bcond[name]['beam'] = 'b1'
-        bcond[name]['fpos'] = 'a'
-        bcond[name]['fdim'] = [1, 1, 1, 1, 1, 1]
         """
 
         csdl_model = LinearBeamCSDL(
