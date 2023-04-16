@@ -114,10 +114,16 @@ class BeamGroup(ModuleCSDL):
                         self.register_output(element_name+'radius',1*radius[i])
 
             elif beams[beam_name]['type'] == 'box':
-                width = self.declare_variable(beam_name+'width',shape=(n - 1),val=0.5)
-                height = self.declare_variable(beam_name+'height',shape=(n - 1),val=0.25)
+                width_mesh = self.declare_variable(beam_name+'width',shape=(n - 1),val=0.5)
+                height_mesh = self.declare_variable(beam_name+'height',shape=(n - 1),val=0.25)
                 t_web = self.declare_variable(beam_name+'t_web',shape=(n - 1),val=0.001)
                 t_cap = self.declare_variable(beam_name+'t_cap',shape=(n - 1),val=0.001)
+
+                # process the meshes:
+                width = width_mesh
+                height = height_mesh
+
+
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)
 
