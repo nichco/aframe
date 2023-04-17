@@ -114,17 +114,17 @@ class BeamGroup(ModuleCSDL):
                         self.register_output(element_name+'radius',1*radius[i])
 
             elif beams[beam_name]['type'] == 'box':
-                width = self.declare_variable(beam_name+'width',shape=(n-1),val=0.5)
-                height = self.declare_variable(beam_name+'height',shape=(n-1),val=0.25)
+                width_mesh = self.declare_variable(beam_name+'width',shape=(n),val=0.5)
+                height_mesh = self.declare_variable(beam_name+'height',shape=(n),val=0.25)
                 t_web = self.declare_variable(beam_name+'t_web',shape=(n-1),val=0.001)
                 t_cap = self.declare_variable(beam_name+'t_cap',shape=(n-1),val=0.001)
 
 
                 # process the meshes to get average element dimensions:
-                #width = self.create_output(beam_name+'element_width',shape=(n-1))
-                #height = self.create_output(beam_name+'element_height',shape=(n-1))
-                #for i in range(n-1): width[i] = (width_mesh[i] + width_mesh[i+1])/2
-                #for i in range(n-1): height[i] = (height_mesh[i] + height_mesh[i+1])/2
+                width = self.create_output(beam_name+'element_width',shape=(n-1))
+                height = self.create_output(beam_name+'element_height',shape=(n-1))
+                for i in range(n-1): width[i] = (width_mesh[i] + width_mesh[i+1])/2
+                for i in range(n-1): height[i] = (height_mesh[i] + height_mesh[i+1])/2
 
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)

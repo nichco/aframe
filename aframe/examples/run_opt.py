@@ -44,8 +44,8 @@ class Run(csdl.Model):
 
         #self.create_input('b1thickness',shape=(9),val=0.002)
         #self.create_input('b1radius',shape=(9),val=0.25)
-        self.create_input('b1height',shape=(9),val=0.5)
-        self.create_input('b1width',shape=(9),val=0.25)
+        self.create_input('b1height',shape=(10),val=0.5)
+        self.create_input('b1width',shape=(10),val=0.25)
         self.create_input('b1t_web',shape=(9),val=0.005)
         self.create_input('b1t_cap',shape=(9),val=0.005)
         
