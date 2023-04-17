@@ -37,7 +37,7 @@ class Run(csdl.Model):
 
 
         dummy_loads = np.zeros((10,3))
-        dummy_loads[-1,2] = 200
+        dummy_loads[:,2] = 100
         self.create_input('b1_forces',shape=(10,3),val=dummy_loads)
 
 
@@ -53,7 +53,7 @@ class Run(csdl.Model):
         self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')
  
 
-        self.add_constraint('vonmises_stress',upper=450E6/4,scaler=1E-8)
+        self.add_constraint('vonmises_stress',upper=450E6/6,scaler=1E-8)
 
         #self.add_design_variable('b1thickness',lower=0.0001,scaler=10)
         #self.add_design_variable('b1radius',lower=0.1,upper=0.5,scaler=1)
@@ -61,7 +61,7 @@ class Run(csdl.Model):
         self.add_design_variable('b1width',lower=0.1,upper=1,scaler=1)
         self.add_design_variable('b1t_web',lower=0.001,upper=0.01,scaler=1E4)
         self.add_design_variable('b1t_cap',lower=0.001,upper=0.01,scaler=1E4)
-        self.add_objective('total_mass',scaler=1E-2)
+        self.add_objective('total_mass',scaler=1E-1)
         
         
 
@@ -89,12 +89,12 @@ if __name__ == '__main__':
 
 
     sim = python_csdl_backend.Simulator(Run(beams=beams,bounds=bounds,joints=joints))
-    sim.run()
+    #sim.run()
 
-    #prob = CSDLProblem(problem_name='run_opt', simulator=sim)
-    #optimizer = SLSQP(prob, maxiter=1000, ftol=1E-8)
-    #optimizer.solve()
-    #optimizer.print_results()
+    prob = CSDLProblem(problem_name='run_opt', simulator=sim)
+    optimizer = SLSQP(prob, maxiter=1000, ftol=1E-8)
+    optimizer.solve()
+    optimizer.print_results()
 
     
     U = sim['U']

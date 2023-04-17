@@ -102,7 +102,6 @@ class StressBox(csdl.Model):
         shear_force_h = local_loads[2]
         torque = local_loads[3]
         bend_moment_1 = local_loads[4] # height bending moment
-        self.print_var(bend_moment_1)
         bend_moment_2 = local_loads[5] # width bending moment
 
         axial_stress = self.create_output(name+'bend_stress',shape=(5),val=0)
