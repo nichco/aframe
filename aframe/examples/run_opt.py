@@ -43,8 +43,8 @@ class Run(csdl.Model):
 
         #self.create_input('b1thickness',shape=(9),val=0.002)
         #self.create_input('b1radius',shape=(9),val=0.25)
-        self.create_input('b1height',shape=(10),val=0.5)
-        self.create_input('b1width',shape=(10),val=0.25)
+        self.create_input('b1height',shape=(9),val=0.5)
+        self.create_input('b1width',shape=(9),val=0.25)
         self.create_input('b1t_web',shape=(9),val=0.001)
         self.create_input('b1t_cap',shape=(9),val=0.001)
         
@@ -52,15 +52,15 @@ class Run(csdl.Model):
         self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')
 
 
-        self.add_constraint('max_stress',upper=450E6/4,scaler=1E-8)
+        self.add_constraint('max_stress',upper=450E6/5,scaler=1E-8)
 
         #self.add_design_variable('b1thickness',lower=0.0001,scaler=10)
         #self.add_design_variable('b1radius',lower=0.1,upper=0.5,scaler=1)
         self.add_design_variable('b1height',lower=0.1,upper=1,scaler=1)
         self.add_design_variable('b1width',lower=0.1,upper=1,scaler=1)
-        self.add_design_variable('b1t_web',lower=1E-8,upper=0.01,scaler=1E6)
-        self.add_design_variable('b1t_cap',lower=1E-8,upper=0.01,scaler=1E6)
-        self.add_objective('total_mass',scaler=1E-2)
+        #self.add_design_variable('b1t_web',lower=0.0001,upper=0.01,scaler=1E5)
+        self.add_design_variable('b1t_cap',lower=0.0001,upper=0.01,scaler=1E5)
+        self.add_objective('total_mass',scaler=1E-1)
         
         
 
