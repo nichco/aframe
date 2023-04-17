@@ -19,7 +19,6 @@ class SectionPropertiesTube(csdl.Model):
 
         # Compute the area, area moments of inertia, and polar moment of inertia
         A = np.pi * (r2**2 - r1**2)
-        #self.print_var(A)
         Iy = np.pi * (r2**4 - r1**4) / 4.0
         Iz = np.pi * (r2**4 - r1**4) / 4.0
         J = np.pi * (r2**4 - r1**4) / 2.0
@@ -79,9 +78,11 @@ class SectionPropertiesBox(csdl.Model):
         Iz = ((width**3)*height - (width_i**3)*height_i)/12
         Iy = (width*(height**3) - width_i*(height_i**3))/12
         J = (width*height*(height**2 + width**2)/12) - (width_i*height_i*(height_i**2 + width_i**2)/12)
+        Q = 2*(height/2)*t_web*(height/4) + (width - 2*t_web)*t_cap*((height/2) - (t_cap/2)) # first area of moment at the centroid
 
 
         self.register_output(name+'A', A)
         self.register_output(name+'Iy', Iy)
         self.register_output(name+'Iz', Iz)
         self.register_output(name+'J', J)
+        self.register_output(name+'Q', Q)

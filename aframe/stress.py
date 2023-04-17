@@ -50,13 +50,13 @@ class StressTube(csdl.Model):
 
 """
 the stress for box beams is evaluated at four points:
-    1 ------------------------------------- 2
+    0 ------------------------------------- 1
       -                y                  -
       -                |                  -
-      -                --> x              -
+      4                --> x              -
       -                                   -
       -                                   -
-    4 ------------------------------------- 3
+    3 ------------------------------------- 2
 """
 class StressBox(csdl.Model):
     def initialize(self):
@@ -66,8 +66,8 @@ class StressBox(csdl.Model):
 
         A = self.declare_variable(name+'A')
         J = self.declare_variable(name+'J')
-        Iy = self.declare_variable(name+'Iy')
-        Iz = self.declare_variable(name+'Iz')
+        Iy = self.declare_variable(name+'Iy') # height axis
+        Iz = self.declare_variable(name+'Iz') # width axis
 
         w = self.declare_variable(name+'width')
         h = self.declare_variable(name+'height')
@@ -76,8 +76,8 @@ class StressBox(csdl.Model):
         local_loads = self.declare_variable(name+'local_loads',shape=(12))
 
         # create the point coordinate matrix
-        x_coord = self.create_output(name+'x_coord',shape=(4),val=0)
-        y_coord = self.create_output(name+'y_coord',shape=(4),val=0)
+        x_coord = self.create_output(name+'x_coord',shape=(5),val=0)
+        y_coord = self.create_output(name+'y_coord',shape=(5),val=0)
         # point 1
         x_coord[0] = -w/2
         y_coord[0] = h/2
@@ -90,37 +90,47 @@ class StressBox(csdl.Model):
         # point 4
         x_coord[3] = -w/2
         y_coord[3] = -h/2
+        # point 5
+        x_coord[4] = -w/2
 
-        # compute the normal stress (same at all four points):
+
+
+
+        # compute the stress at each point:
         normal_force = local_loads[0]
-        s_normal = normal_force/A
+        shear_force_w = local_loads[1]
+        shear_force_h = local_loads[2]
+        torque = local_loads[3]
+        bend_moment_1 = local_loads[4] # height bending moment
+        self.print_var(bend_moment_1)
+        bend_moment_2 = local_loads[5] # width bending moment
 
+        axial_stress = self.create_output(name+'bend_stress',shape=(5),val=0)
+        torsional_stress = self.create_output(name+'torsional_stress',shape=(5),val=0)
+        transverse_shear_stress = self.create_output(name+'shear_stress',shape=(5),val=0)
+        s_vonmises = self.create_output(name+'s_vonmises',shape=(5),val=0)
 
-        # compute the bending stress at each point:
-        bend_moment_1 = local_loads[4]
-        bend_moment_2 = local_loads[5]
-        bend_stress = self.create_output(name+'bend_stress',shape=(4),val=0)
-        for point in range(4):
+        t_web = self.declare_variable(name+'t_web')
+        Q = self.declare_variable(name+'Q')
+        for point in range(5):
             x = x_coord[point]
             y = y_coord[point]
-            bend_stress[point] = (bend_moment_1*y/Iy) + (bend_moment_2*x/Iz)
+            r = ((x/2)**2 + (y/2)**2)**0.5
 
-        # take the maximum bending stress:
-        s_bend = csdl.max(bend_stress)
+            axial_stress[point] = (normal_force/A) + (bend_moment_1*y/Iy) + (bend_moment_2*x/Iz)
+
+            torsional_stress[point] = torque*r/J
+
+            if point == 4: # the max shear at the neutral axis:
+                transverse_shear_stress[point] = shear_force_h*Q/(Iy*t_web)
+
+            tau = torsional_stress[point] + transverse_shear_stress[point]
+
+            s_vonmises[point] = (axial_stress[point]**2 + 3*tau**2)**0.5
 
 
-        # compute the torsional stress:
-        r = ((w/2)**2 + (h/2)**2)**0.5
-        t = local_loads[3]
-        tau = t*r/J
 
-
-        # sum the max bending stress and normal stress:
-        s_axial = s_normal + s_bend
-        
-
-        # compute the maximum von-mises stress
-        s_vm = (s_axial**2 + 3*tau**2)**0.5
-
-        self.register_output(name+'s_vm', s_vm)
+        # take the maximum stress:
+        s_max = csdl.max(s_vonmises)
+        self.register_output(name+'s_vm', s_max)
         

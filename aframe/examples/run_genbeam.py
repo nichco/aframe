@@ -4,7 +4,8 @@ import python_csdl_backend
 import matplotlib.pyplot as plt
 from aframe.beamgroup import BeamGroup
 
-
+#import matplotlib as mpl
+#mpl.rcParams.update(mpl.rcParamsDefault)
 
 class Run(csdl.Model):
     def initialize(self):

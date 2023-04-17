@@ -29,8 +29,8 @@ class MassProp(csdl.Model):
 
 
             # get the (undeformed) position vector of the cg for each element:
-            r_a = self.declare_variable(element_name+'node_a',shape=(6))[0:3]
-            r_b = self.declare_variable(element_name+'node_b',shape=(6))[0:3]
+            r_a = self.declare_variable(element_name+'node_a_position',shape=(3))
+            r_b = self.declare_variable(element_name+'node_b_position',shape=(3))
 
             # get the (undeformed) position vector of the cg for each element:
             r_a_def = self.declare_variable(element_name+'node_a_def',shape=(3))

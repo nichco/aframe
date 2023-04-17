@@ -6,7 +6,8 @@ from aframe.beamgroup import BeamGroup
 from modopt.scipy_library import SLSQP
 from modopt.csdl_library import CSDLProblem
 
-
+import matplotlib as mpl
+mpl.rcParams.update(mpl.rcParamsDefault)
 
 class Run(csdl.Model):
     def initialize(self):
@@ -36,7 +37,7 @@ class Run(csdl.Model):
 
 
         dummy_loads = np.zeros((10,3))
-        dummy_loads[-1,2] = 150
+        dummy_loads[-1,2] = 200
         self.create_input('b1_forces',shape=(10,3),val=dummy_loads)
 
 
@@ -45,22 +46,22 @@ class Run(csdl.Model):
         #self.create_input('b1radius',shape=(9),val=0.25)
         self.create_input('b1height',shape=(9),val=0.5)
         self.create_input('b1width',shape=(9),val=0.25)
-        self.create_input('b1t_web',shape=(9),val=0.001)
-        self.create_input('b1t_cap',shape=(9),val=0.001)
+        self.create_input('b1t_web',shape=(9),val=0.005)
+        self.create_input('b1t_cap',shape=(9),val=0.005)
         
         # solve the beam group:
         self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')
+ 
 
-
-        self.add_constraint('max_stress',upper=450E6/5,scaler=1E-8)
+        self.add_constraint('vonmises_stress',upper=450E6/4,scaler=1E-8)
 
         #self.add_design_variable('b1thickness',lower=0.0001,scaler=10)
         #self.add_design_variable('b1radius',lower=0.1,upper=0.5,scaler=1)
         self.add_design_variable('b1height',lower=0.1,upper=1,scaler=1)
         self.add_design_variable('b1width',lower=0.1,upper=1,scaler=1)
-        #self.add_design_variable('b1t_web',lower=0.0001,upper=0.01,scaler=1E5)
-        self.add_design_variable('b1t_cap',lower=0.0001,upper=0.01,scaler=1E5)
-        self.add_objective('total_mass',scaler=1E-1)
+        self.add_design_variable('b1t_web',lower=0.001,upper=0.01,scaler=1E4)
+        self.add_design_variable('b1t_cap',lower=0.001,upper=0.01,scaler=1E4)
+        self.add_objective('total_mass',scaler=1E-2)
         
         
 
@@ -76,18 +77,6 @@ if __name__ == '__main__':
     
     name = 'b1'
     beams[name] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'box','n': 10,'a': [0,0,0],'b': [10,0,0]}
-
-    
-    name = 'b2'
-    beams[name] = {}
-    beams[name]['E'] = 69E9
-    beams[name]['G'] = 26E9
-    beams[name]['rho'] = 2700
-    beams[name]['type'] = 'tube'
-    beams[name]['n'] = 4
-
-    beams[name]['a'] = [10,0,0]
-    beams[name]['b'] = [10,1,0]
     
 
     name = 'root'
@@ -96,22 +85,16 @@ if __name__ == '__main__':
     bounds[name]['fpos'] = 'a'
     bounds[name]['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
 
-    
-    name = 'c1'
-    joints[name] = {}
-    joints[name]['beam_names'] = ['b1','b2']
-    joints[name]['nodes'] = ['b','a'] # connects the end of b1 to the start of b2
-
 
 
 
     sim = python_csdl_backend.Simulator(Run(beams=beams,bounds=bounds,joints=joints))
-    #sim.run()
+    sim.run()
 
-    prob = CSDLProblem(problem_name='run_opt', simulator=sim)
-    optimizer = SLSQP(prob, maxiter=1000, ftol=1E-8)
-    optimizer.solve()
-    optimizer.print_results()
+    #prob = CSDLProblem(problem_name='run_opt', simulator=sim)
+    #optimizer = SLSQP(prob, maxiter=1000, ftol=1E-8)
+    #optimizer.solve()
+    #optimizer.print_results()
 
     
     U = sim['U']
@@ -151,7 +134,6 @@ if __name__ == '__main__':
             ax.scatter(na[0], na[1], na[2],color='yellow',edgecolors='black',linewidth=1)
             ax.scatter(nb[0], nb[1], nb[2],color='yellow',edgecolors='black',linewidth=1)
 
-    
 
     
     # plot the cg:
@@ -169,10 +151,10 @@ if __name__ == '__main__':
 
     """
     # validation:
-    F = -1000
-    L = 3
+    F = -200
+    L = 10
     E = 69E9
-    I = sim['element_1Iy']
+    I = sim['b1_element_1Iy']
     dmax = F*(L**3)/(3*E*I)
     print('dmax: ',dmax)
     """
