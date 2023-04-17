@@ -57,5 +57,3 @@ class LinearBeamCSDL(ModuleCSDL):
 
         # solve the beam group:
         self.add_module(BeamGroup(beams=beams,bounds=bounds,joints=joints,mesh_units='ft'), name='Group')
-
-        #self.register_module_output('mass')
