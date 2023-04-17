@@ -37,7 +37,7 @@ class Run(csdl.Model):
 
 
         dummy_loads = np.zeros((10,3))
-        dummy_loads[:,2] = 100
+        dummy_loads[:,2] = 200
         self.create_input('b1_forces',shape=(10,3),val=dummy_loads)
 
 
