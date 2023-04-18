@@ -67,6 +67,7 @@ class BeamGroup(ModuleCSDL):
 
             # register the mesh input:
             mesh_input = self.register_module_input(beam_name,shape=(n,3), promotes=True)
+            self.print_var(mesh_input)
 
             if mesh_units == 'ft': mesh = mesh_input/3.281
             elif mesh_units == 'm': mesh = mesh_input
@@ -115,16 +116,18 @@ class BeamGroup(ModuleCSDL):
                         self.register_output(element_name+'radius',1*radius[i])
 
             elif beams[beam_name]['type'] == 'box':
-                width_mesh = self.declare_variable(beam_name+'width',shape=(n),val=0.5)
-                height_mesh = self.declare_variable(beam_name+'height',shape=(n),val=0.25)
+                #width_mesh = self.declare_variable(beam_name+'_width',shape=(n),val=0.5)
+                #height_mesh = self.declare_variable(beam_name+'_height',shape=(n),val=0.25)
+                width_mesh = self.register_module_input(beam_name+'_width',shape=(n),promotes=True)
+                height_mesh = self.register_module_input(beam_name+'_height',shape=(n),promotes=True)
+
+                self.print_var(width_mesh)
 
                 #t_web = self.declare_variable(beam_name+'t_web',shape=(n-1),val=0.001)
                 #t_cap = self.declare_variable(beam_name+'t_cap',shape=(n-1),val=0.001)
 
                 t_web = self.register_module_input(beam_name+'t_web',shape=(n-1))
                 t_cap = self.register_module_input(beam_name+'t_cap',shape=(n-1))
-
-                self.print_var(t_web)
 
 
                 # process the meshes to get average element dimensions:
