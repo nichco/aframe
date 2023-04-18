@@ -79,7 +79,7 @@ class Group(ModuleCSDL):
             num_elements = num_beam_nodes - 1
             E, G, rho, type = beams[beam_name]['E'], beams[beam_name]['G'], beams[beam_name]['rho'], beams[beam_name]['type']
 
-            dummy_mesh_3 = self.register_module_input(beam_name+'mesh' ,shape=(num_beam_nodes,3), promotes=True)
+            dummy_mesh_3 = self.register_module_input(beam_name , shape=(num_beam_nodes,3), promotes=True)
 
             # append zeros:
             dummy_mesh = self.create_output(beam_name+'mesh_6',shape=(num_beam_nodes,6),val=0)
