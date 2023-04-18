@@ -253,3 +253,10 @@ class BeamGroup(ModuleCSDL):
         
         # compute the cg and moi:
         self.add(MassProp(elements=elements), name='MassProp')
+
+
+
+        # output dummy forces and moments:
+        zero = self.declare_variable('zero_vec',shape=(3),val=0)
+        self.register_output('F', 1*zero)
+        self.register_output('M', 1*zero)
