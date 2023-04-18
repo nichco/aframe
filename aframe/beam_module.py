@@ -22,13 +22,9 @@ class LinearBeam(MechanicsModel):
         bounds = self.parameters['bounds']
         joints = self.parameters['joints']
 
-        """
-        comp = self.parameters['component']
-        comp_name = comp.parameters['name']
-        beam_name = f'{comp_name}_beam'
-        """
 
         csdl_model = LinearBeamCSDL(
+            module=self,
             beams=beams,  
             bounds=bounds,
             joints=joints,
@@ -55,6 +51,14 @@ class LinearBeamCSDL(ModuleCSDL):
         bounds = self.parameters['bounds']
         joints = self.parameters['joints']
 
+
+
+        for beam_name in beams:
+            n = beams[beam_name]['n']
+            xweb = self.register_module_input(beam_name+'t_web_in',shape=(n-1), computed_upstream=False)
+            xcap = self.register_module_input(beam_name+'t_cap_in',shape=(n-1), computed_upstream=False)
+            self.register_output(beam_name+'t_web',1*xweb)
+            self.register_output(beam_name+'t_cap',1*xcap)
 
         # solve the beam group:
         self.add_module(BeamGroup(beams=beams,bounds=bounds,joints=joints,mesh_units='ft'), name='BeamGroup')
