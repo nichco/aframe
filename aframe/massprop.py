@@ -99,10 +99,10 @@ class MassProp(csdl.Model):
         Iyy = csdl.sum(eiyy)
         Izz = csdl.sum(eizz)
         Ixz = csdl.sum(eixz)
-        self.register_output('Ixx',Ixx)
-        self.register_output('Iyy',Iyy)
-        self.register_output('Izz',Izz)
-        self.register_output('Ixz',Ixz)
+        self.register_output('ixx',Ixx)
+        self.register_output('iyy',Iyy)
+        self.register_output('izz',Izz)
+        self.register_output('ixz',Ixz)
 
         # self.print_var(Iyy)
 
