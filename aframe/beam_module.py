@@ -10,6 +10,7 @@ class LinearBeam(MechanicsModel):
         self.parameters.declare('component', default=None)
         self.parameters.declare('mesh', default=None)
         self.parameters.declare('struct_solver', True)
+        self.parameters.declare('compute_mass_properties', default=True, types=bool)
 
         self.parameters.declare('beams', default={})
         self.parameters.declare('bounds', default={})

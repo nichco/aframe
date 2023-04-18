@@ -58,5 +58,5 @@ class GlobalLoads(csdl.Model):
         total_loads = csdl.sum(nodal_loads, axes=(0,))
 
         # flatten the total loads matrix to a vector:
-        F = csdl.reshape(total_loads, new_shape=(6*num_unique_nodes))
-        self.register_output('F', F)
+        Fi = csdl.reshape(total_loads, new_shape=(6*num_unique_nodes))
+        self.register_output('Fi', Fi)

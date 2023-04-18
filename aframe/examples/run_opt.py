@@ -61,7 +61,7 @@ class Run(csdl.Model):
         self.add_design_variable('b1width',lower=0.1,upper=1,scaler=1)
         self.add_design_variable('b1t_web',lower=0.001,upper=0.01,scaler=1E4)
         self.add_design_variable('b1t_cap',lower=0.001,upper=0.01,scaler=1E4)
-        self.add_objective('total_mass',scaler=1E-1)
+        self.add_objective('mass',scaler=1E-1)
         
         
 
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     print('width: ', b1width)
     print('t_web: ', b1t_web)
     print('t_cap: ', b1t_cap)
-    print(sim['total_mass'])
+    print(sim['mass'])
 
     
     fig = plt.figure()

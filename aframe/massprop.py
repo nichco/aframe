@@ -50,7 +50,7 @@ class MassProp(csdl.Model):
 
         # compute the center of gravity for the entire structure:
         total_mass = csdl.sum(m_vec)
-        self.register_output('total_mass', total_mass)
+        self.register_output('mass', total_mass)
         sum_rm = csdl.sum(rm_vec,axes=(0,))
         sum_rm_def = csdl.sum(rm_vec_def,axes=(0,))
 
@@ -59,6 +59,9 @@ class MassProp(csdl.Model):
 
         cg_def = sum_rm_def/csdl.expand(total_mass, (3))
         self.register_output('cg_def',cg_def)
+        self.register_output('cgx',cg_def[0])
+        self.register_output('cgy',cg_def[1])
+        self.register_output('cgz',cg_def[2])
 
 
 

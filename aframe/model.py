@@ -13,8 +13,8 @@ class Model(csdl.Model):
 
         K = self.declare_variable('K',shape=(dim,dim))
         U = self.declare_variable('U',shape=(dim))
-        F = self.declare_variable('F',shape=(dim))
+        Fi = self.declare_variable('Fi',shape=(dim))
 
-        R = csdl.matvec(K,U) - F
+        R = csdl.matvec(K,U) - Fi
 
         self.register_output('R', R)

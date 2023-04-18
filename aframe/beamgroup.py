@@ -169,7 +169,7 @@ class BeamGroup(ModuleCSDL):
 
         # create the global loads vector:
         self.add(GlobalLoads(beams=beams,num_unique_nodes=num_unique_nodes,nodes=nodes,node_index=node_index,bounds=bounds), name='GlobalLoads')
-        F = self.declare_variable('F',shape=(dim))
+        Fi = self.declare_variable('Fi',shape=(dim))
 
 
 
@@ -182,7 +182,7 @@ class BeamGroup(ModuleCSDL):
         solve_res.declare_state(state='U', residual='R')
         solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-5,)
         solve_res.linear_solver = csdl.ScipyKrylov()
-        U = solve_res(K, F)
+        U = solve_res(K, Fi)
 
 
 
