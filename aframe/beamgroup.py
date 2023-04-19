@@ -20,11 +20,13 @@ class BeamGroup(ModuleCSDL):
         self.parameters.declare('joints',default={})
         self.parameters.declare('bounds',default={})
         self.parameters.declare('mesh_units',default='m')
+        self.parameters.declare('load_factor',default=1)
     def define(self):
         beams = self.parameters['beams']
         joints = self.parameters['joints']
         bounds = self.parameters['bounds']
         mesh_units = self.parameters['mesh_units']
+        load_factor = self.parameters['load_factor']
 
 
         # error handling
@@ -121,7 +123,8 @@ class BeamGroup(ModuleCSDL):
                 width_mesh = self.register_module_input(beam_name+'_width',shape=(n),promotes=True)
                 height_mesh = self.register_module_input(beam_name+'_height',shape=(n),promotes=True)
 
-                self.print_var(width_mesh)
+                #self.print_var(width_mesh)
+                #self.print_var(height_mesh)
 
                 #t_web = self.declare_variable(beam_name+'t_web',shape=(n-1),val=0.001)
                 #t_cap = self.declare_variable(beam_name+'t_cap',shape=(n-1),val=0.001)
@@ -178,7 +181,7 @@ class BeamGroup(ModuleCSDL):
         K = self.declare_variable('K',shape=(dim,dim))
 
         # create the global loads vector:
-        self.add(GlobalLoads(beams=beams,num_unique_nodes=num_unique_nodes,nodes=nodes,node_index=node_index,bounds=bounds), name='GlobalLoads')
+        self.add(GlobalLoads(beams=beams,num_unique_nodes=num_unique_nodes,nodes=nodes,node_index=node_index,bounds=bounds,load_factor=load_factor), name='GlobalLoads')
         Fi = self.declare_variable('Fi',shape=(dim))
 
 
@@ -258,6 +261,7 @@ class BeamGroup(ModuleCSDL):
         max_stress = csdl.max(vonmises_stress)
         #self.register_output('max_stress',max_stress)
         self.register_module_output('max_stress', max_stress)
+        self.print_var(max_stress)
 
 
 

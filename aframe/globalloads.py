@@ -10,6 +10,7 @@ class GlobalLoads(csdl.Model):
         self.parameters.declare('nodes')
         self.parameters.declare('node_index')
         self.parameters.declare('bounds')
+        self.parameters.declare('load_factor')
 
 
     def define(self):
@@ -18,6 +19,7 @@ class GlobalLoads(csdl.Model):
         nodes = self.parameters['nodes']
         node_index = self.parameters['node_index']
         bounds = self.parameters['bounds']
+        load_factor = self.parameters['load_factor']
 
 
         b_index_list = []
@@ -46,7 +48,7 @@ class GlobalLoads(csdl.Model):
 
             # concatenate the forces and moments:
             loads = self.create_output(f'{beam_name}_loads',shape=(n,6),val=0)
-            loads[:,0:3], loads[:, 3:6] = forces, moments
+            loads[:,0:3], loads[:, 3:6] = forces*load_factor, moments*load_factor
 
             for j, bnode in enumerate(beam_nodes):
                 index = node_index[bnode]
