@@ -44,10 +44,10 @@ class Run(csdl.Model):
 
         #self.create_input('b1thickness',shape=(9),val=0.002)
         #self.create_input('b1radius',shape=(9),val=0.25)
-        self.create_input('b1height',shape=(10),val=0.5)
-        self.create_input('b1width',shape=(10),val=0.25)
+        self.create_input('b1_height',shape=(10),val=0.5)
+        self.create_input('b1_width',shape=(10),val=0.25)
         self.create_input('b1t_web',shape=(9),val=0.005)
-        self.create_input('b1t_cap',shape=(9),val=0.005)
+        self.create_input('b1t_cap',shape=(9),val=0.01)
         
         # solve the beam group:
         self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')
@@ -101,16 +101,16 @@ if __name__ == '__main__':
     vonmises_stress = sim['vonmises_stress']
     #b1thickness = sim['b1thickness']
     #b1radius = sim['b1radius']
-    b1height = sim['b1height']
-    b1width = sim['b1width']
+    b1height = sim['b1_height']
+    b1width = sim['b1_width']
     b1t_web = sim['b1t_web']
     b1t_cap = sim['b1t_cap']
     print('stress: ', vonmises_stress)
-    print('height: ', b1height)
-    print('width: ', b1width)
-    print('t_web: ', b1t_web)
-    print('t_cap: ', b1t_cap)
-    print(sim['mass'])
+    #print('height: ', b1height)
+    #print('width: ', b1width)
+    #print('t_web: ', b1t_web)
+    #print('t_cap: ', b1t_cap)
+    #print(sim['mass'])
 
     
     fig = plt.figure()
