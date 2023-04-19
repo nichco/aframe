@@ -21,12 +21,16 @@ class BeamGroup(ModuleCSDL):
         self.parameters.declare('bounds',default={})
         self.parameters.declare('mesh_units',default='m')
         self.parameters.declare('load_factor',default=1)
+        self.parameters.declare('sy',default=450E6)
+        self.parameters.declare('fos',default=1)
     def define(self):
         beams = self.parameters['beams']
         joints = self.parameters['joints']
         bounds = self.parameters['bounds']
         mesh_units = self.parameters['mesh_units']
         load_factor = self.parameters['load_factor']
+        sy = self.parameters['sy']
+        fos = self.parameters['fos']
 
 
         # error handling
@@ -267,8 +271,11 @@ class BeamGroup(ModuleCSDL):
         max_stress = csdl.max(vonmises_stress)
         #self.register_output('max_stress',max_stress)
         self.register_module_output('max_stress', max_stress)
-        self.print_var(max_stress)
+        
 
+        margin = (sy/(max_stress*fos)) - 1
+        self.register_output('margin', margin)
+        self.print_var(margin)
 
 
         
