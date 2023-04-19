@@ -46,8 +46,8 @@ class Run(csdl.Model):
         #self.create_input('b1radius',shape=(9),val=0.25)
         self.create_input('b1_height',shape=(10),val=0.5)
         self.create_input('b1_width',shape=(10),val=0.25)
-        self.create_input('b1t_web',shape=(9),val=0.005)
-        self.create_input('b1t_cap',shape=(9),val=0.01)
+        self.create_input('b1t_web',shape=(9),val=0.002)
+        self.create_input('b1t_cap',shape=(9),val=0.02)
         
         # solve the beam group:
         self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')

@@ -38,7 +38,7 @@ class GlobalLoads(csdl.Model):
             for i, fdim in enumerate(fdim):
                 if fdim == 1: b_index_list.append(b_node_index*6 + i)
 
-        #print(b_index_list)
+
 
 
         nodal_loads = self.create_output('nodal_loads',shape=(len(beams),num_unique_nodes,6),val=0)
@@ -60,10 +60,13 @@ class GlobalLoads(csdl.Model):
                 #if index not in b_index_list: 
                 if bnode not in b_node_list: 
                     nodal_loads[i,index,:] = csdl.reshape(loads[j,:], (1,1,6))
+
+                for k in range(6):
+                    pass
             
                     
 
-        self.print_var(nodal_loads)
+        #self.print_var(nodal_loads)
 
         # sum the nodal loads over the beams (so that loads can be doubly defined where beams join):
         total_loads = csdl.sum(nodal_loads, axes=(0,))
