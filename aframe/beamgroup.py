@@ -69,7 +69,7 @@ class BeamGroup(ModuleCSDL):
 
             # register the mesh input:
             mesh_input = self.register_module_input(beam_name,shape=(n,3), promotes=True)
-            self.print_var(mesh_input)
+            #self.print_var(mesh_input)
 
             if mesh_units == 'ft': mesh = mesh_input/3.281
             elif mesh_units == 'm': mesh = mesh_input
@@ -119,13 +119,13 @@ class BeamGroup(ModuleCSDL):
 
             elif beams[beam_name]['type'] == 'box':
 
-                #width_mesh = self.register_module_input(beam_name+'_width',shape=(n),promotes=True)
-                #height_mesh = self.register_module_input(beam_name+'_height',shape=(n),promotes=True)
+                width_mesh = self.register_module_input(beam_name+'_width',shape=(n),promotes=True)
+                height_mesh = self.register_module_input(beam_name+'_height',shape=(n),promotes=True)
 
-                width_mesh_i = self.register_module_input(beam_name+'_width',shape=(n,3),promotes=True)
-                width_mesh = csdl.pnorm(width_mesh_i,axis=1,pnorm_type=2)*0.5
-                height_mesh_i = self.register_module_input(beam_name+'_height',shape=(n,3),promotes=True)
-                height_mesh = csdl.pnorm(height_mesh_i,axis=1,pnorm_type=2)
+                #width_mesh_i = self.register_module_input(beam_name+'_width',shape=(n,3),promotes=True)
+                #width_mesh = csdl.pnorm(width_mesh_i,axis=1,pnorm_type=2)*0.5
+                #height_mesh_i = self.register_module_input(beam_name+'_height',shape=(n,3),promotes=True)
+                #height_mesh = csdl.pnorm(height_mesh_i,axis=1,pnorm_type=2)
 
                 #self.print_var(width_mesh)
                 #self.print_var(height_mesh)
@@ -135,6 +135,8 @@ class BeamGroup(ModuleCSDL):
 
                 t_web = self.register_module_input(beam_name+'t_web',shape=(n-1))
                 t_cap = self.register_module_input(beam_name+'t_cap',shape=(n-1))
+
+                #self.print_var(t_web)
 
 
                 # process the meshes to get average element dimensions:
@@ -149,8 +151,8 @@ class BeamGroup(ModuleCSDL):
                     if mesh_units == 'ft':
                         self.register_output(element_name+'width',width[i]/3.281)
                         self.register_output(element_name+'height',height[i]/3.281)
-                        self.register_output(element_name+'t_web',t_web[i]/3.281)
-                        self.register_output(element_name+'t_cap',t_cap[i]/3.281)
+                        self.register_output(element_name+'t_web',t_web[i]) # thickness units are still meters
+                        self.register_output(element_name+'t_cap',t_cap[i])
 
                     elif mesh_units == 'm':
                         self.register_output(element_name+'width',1*width[i])
@@ -248,7 +250,7 @@ class BeamGroup(ModuleCSDL):
 
 
         # perform a stress recovery:
-        vonmises_stress = self.create_output('vonmises_stress',shape=(len(elements))) # the global element stress vector
+        vonmises_stress = self.create_output('vonmises_stress',shape=(len(elements)),val=0) # the global element stress vector
         for i, element_name in enumerate(elements):
             if elements[element_name]['type'] == 'tube': 
                 self.add(StressTube(name=element_name), name=element_name+'Stress')

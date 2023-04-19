@@ -128,7 +128,8 @@ class StressBox(csdl.Model):
             s_vonmises[point] = (axial_stress[point]**2 + 3*tau**2)**0.5
 
 
-
+        #self.print_var(shear_force_h)
+        #self.print_var(bend_moment_2)
         # take the maximum stress:
         s_max = csdl.max(s_vonmises)
         self.register_output(name+'s_vm', s_max)

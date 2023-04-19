@@ -70,6 +70,8 @@ class SectionPropertiesBox(csdl.Model):
         t_web = self.declare_variable(name+'t_web')
         t_cap = self.declare_variable(name+'t_cap')
 
+        #self.print_var(t_web)
+
         width_i = width - 2*t_web
         height_i = height - 2*t_cap
 

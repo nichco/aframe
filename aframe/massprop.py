@@ -60,9 +60,13 @@ class MassProp(csdl.Model):
 
         cg_def = sum_rm_def/csdl.expand(total_mass, (3))
         self.register_output('cg_def',cg_def)
-        self.register_output('cgx',cg_def[0])
-        self.register_output('cgy',cg_def[1])
-        self.register_output('cgz',cg_def[2])
+        #self.register_output('cgx',cg_def[0])
+        #self.register_output('cgy',cg_def[1])
+        #self.register_output('cgz',cg_def[2])
+
+        self.register_output('cgx',cg[0])
+        self.register_output('cgy',cg[1])
+        self.register_output('cgz',cg[2])
 
 
 
