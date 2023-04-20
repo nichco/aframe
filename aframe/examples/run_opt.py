@@ -51,7 +51,7 @@ class Run(csdl.Model):
         
         # solve the beam group:
         self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')
- 
+
 
         self.add_constraint('vonmises_stress',upper=450E6/3,scaler=1E-8)
         #self.add_constraint('margin',equals=0,scaler=1)
