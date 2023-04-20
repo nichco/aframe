@@ -36,31 +36,32 @@ class Run(csdl.Model):
         
 
 
-        dummy_loads = np.zeros((10,3))
-        dummy_loads[:,2] = 200
-        self.create_input('b1_forces',shape=(10,3),val=dummy_loads)
+        dummy_loads = np.zeros((15,3))
+        dummy_loads[:,2] = 500
+        self.create_input('b1_forces',shape=(15,3),val=dummy_loads)
 
 
 
         #self.create_input('b1thickness',shape=(9),val=0.002)
         #self.create_input('b1radius',shape=(9),val=0.25)
-        self.create_input('b1_height',shape=(10),val=0.5)
-        self.create_input('b1_width',shape=(10),val=0.25)
-        self.create_input('b1t_web',shape=(9),val=0.002)
-        self.create_input('b1t_cap',shape=(9),val=0.02)
+        self.create_input('b1_height',shape=(15),val=0.5)
+        self.create_input('b1_width',shape=(15),val=0.25)
+        #self.create_input('b1t_web',shape=(14),val=0.002)
+        self.create_input('b1t_cap',shape=(14),val=0.02)
         
         # solve the beam group:
         self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')
  
 
-        self.add_constraint('vonmises_stress',upper=450E6/6,scaler=1E-8)
+        self.add_constraint('vonmises_stress',upper=450E6/3,scaler=1E-8)
+        #self.add_constraint('margin',equals=0,scaler=1)
 
         #self.add_design_variable('b1thickness',lower=0.0001,scaler=10)
         #self.add_design_variable('b1radius',lower=0.1,upper=0.5,scaler=1)
-        self.add_design_variable('b1_height',lower=0.1,upper=1,scaler=1)
-        self.add_design_variable('b1_width',lower=0.1,upper=1,scaler=1)
-        self.add_design_variable('b1t_web',lower=0.001,upper=0.01,scaler=1E4)
-        self.add_design_variable('b1t_cap',lower=0.001,upper=0.01,scaler=1E4)
+        self.add_design_variable('b1_height',lower=0.1,upper=0.5,scaler=1)
+        self.add_design_variable('b1_width',lower=0.1,upper=0.5,scaler=1)
+        #self.add_design_variable('b1t_web',lower=0.0005,upper=0.01,scaler=1E4)
+        self.add_design_variable('b1t_cap',lower=0.0005,upper=0.01,scaler=1E4)
         self.add_objective('mass',scaler=1E-1)
         
         
@@ -76,7 +77,7 @@ if __name__ == '__main__':
 
     
     name = 'b1'
-    beams[name] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'box','n': 10,'a': [0,0,0],'b': [10,0,0]}
+    beams[name] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'box','n': 15,'a': [0,0,0],'b': [10,0,0]}
     
 
     name = 'root'
@@ -89,12 +90,12 @@ if __name__ == '__main__':
 
 
     sim = python_csdl_backend.Simulator(Run(beams=beams,bounds=bounds,joints=joints))
-    sim.run()
+    #sim.run()
 
-    #prob = CSDLProblem(problem_name='run_opt', simulator=sim)
-    #optimizer = SLSQP(prob, maxiter=1000, ftol=1E-8)
-    #optimizer.solve()
-    #optimizer.print_results()
+    prob = CSDLProblem(problem_name='run_opt', simulator=sim)
+    optimizer = SLSQP(prob, maxiter=1000, ftol=1E-10)
+    optimizer.solve()
+    optimizer.print_results()
 
     
     U = sim['U']
@@ -103,14 +104,14 @@ if __name__ == '__main__':
     #b1radius = sim['b1radius']
     b1height = sim['b1_height']
     b1width = sim['b1_width']
-    b1t_web = sim['b1t_web']
+    #b1t_web = sim['b1t_web']
     b1t_cap = sim['b1t_cap']
     print('stress: ', vonmises_stress)
-    #print('height: ', b1height)
-    #print('width: ', b1width)
+    print('height: ', b1height)
+    print('width: ', b1width)
     #print('t_web: ', b1t_web)
-    #print('t_cap: ', b1t_cap)
-    #print(sim['mass'])
+    print('t_cap: ', b1t_cap)
+    print(sim['mass'])
 
     
     fig = plt.figure()

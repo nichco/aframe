@@ -71,6 +71,8 @@ class GlobalLoads(csdl.Model):
         # sum the nodal loads over the beams (so that loads can be doubly defined where beams join):
         total_loads = csdl.sum(nodal_loads, axes=(0,))
 
+        #self.print_var(total_loads)
+
         # flatten the total loads matrix to a vector:
         Fi = csdl.reshape(total_loads, new_shape=(6*num_unique_nodes))
         self.register_output('Fi', Fi)

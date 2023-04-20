@@ -104,8 +104,6 @@ class StressBox(csdl.Model):
         bend_moment_1 = local_loads[4] # height bending moment
         bend_moment_2 = local_loads[5] # width bending moment
 
-        axial_stress = self.create_output(name+'bend_stress',shape=(5),val=0)
-        torsional_stress = self.create_output(name+'torsional_stress',shape=(5),val=0)
         transverse_shear_stress = self.create_output(name+'shear_stress',shape=(5),val=0)
         s_vonmises = self.create_output(name+'s_vonmises',shape=(5),val=0)
 
@@ -116,16 +114,19 @@ class StressBox(csdl.Model):
             y = y_coord[point]
             r = (x**2 + y**2)**0.5
 
-            axial_stress[point] = (normal_force/A) + (bend_moment_1*y/Iy) + (bend_moment_2*x/Iz)
-
-            torsional_stress[point] = torque*r/J
+            axial_stress = (normal_force/A) + (bend_moment_1*y/Iy) + (bend_moment_2*x/Iz)
+            torsional_stress = torque*r/J
 
             if point == 4: # the max shear at the neutral axis:
-                transverse_shear_stress[point] = shear_force_h*Q/(Iy*t_web)
+                transverse_shear_stress[point] = shear_force_h*Q/(Iy*2*t_web)
 
-            tau = torsional_stress[point] + transverse_shear_stress[point]
+            tau = torsional_stress + transverse_shear_stress[point]
 
-            s_vonmises[point] = (axial_stress[point]**2 + 3*tau**2)**0.5
+            s_vonmises[point] = (axial_stress**2 + 3*tau**2)**0.5
+
+
+
+
 
 
         #self.print_var(shear_force_h)

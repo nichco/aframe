@@ -137,10 +137,9 @@ class BeamGroup(ModuleCSDL):
                 #t_web = self.declare_variable(beam_name+'t_web',shape=(n-1),val=0.001)
                 #t_cap = self.declare_variable(beam_name+'t_cap',shape=(n-1),val=0.001)
 
-                t_web = self.register_module_input(beam_name+'t_web',shape=(n-1))
+                #t_web = self.register_module_input(beam_name+'t_web',shape=(n-1))
                 t_cap = self.register_module_input(beam_name+'t_cap',shape=(n-1))
-
-                #self.print_var(t_web)
+                t_web = 1*t_cap # temporarily make the web and cap the same thickness
 
 
                 # process the meshes to get average element dimensions:
