@@ -114,7 +114,7 @@ class StressBox(csdl.Model):
         for point in range(5):
             x = x_coord[point]
             y = y_coord[point]
-            r = ((x/2)**2 + (y/2)**2)**0.5
+            r = (x**2 + y**2)**0.5
 
             axial_stress[point] = (normal_force/A) + (bend_moment_1*y/Iy) + (bend_moment_2*x/Iz)
 
