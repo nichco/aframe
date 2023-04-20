@@ -60,9 +60,9 @@ class LinearBeamCSDL(ModuleCSDL):
 
         for beam_name in beams:
             n = beams[beam_name]['n']
-            xweb = self.register_module_input(beam_name+'t_web_in',shape=(n-1), computed_upstream=False)
+            # xweb = self.register_module_input(beam_name+'t_web_in',shape=(n-1), computed_upstream=False)
             xcap = self.register_module_input(beam_name+'t_cap_in',shape=(n-1), computed_upstream=False)
-            self.register_output(beam_name+'t_web',1*xweb)
+            # self.register_output(beam_name+'t_web',1*xweb)
             self.register_output(beam_name+'t_cap',1*xcap)
 
         # solve the beam group:
