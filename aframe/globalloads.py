@@ -47,11 +47,12 @@ class GlobalLoads(csdl.Model):
             beam_nodes = nodes[beam_name]
             
             forces = self.declare_variable(beam_name+'_forces',shape=(n,3),val=0)
-            moments = self.declare_variable(beam_name+'_moments',shape=(n,3),val=0)
+            #moments = self.declare_variable(beam_name+'_moments',shape=(n,3),val=0)
 
             # concatenate the forces and moments:
             loads = self.create_output(f'{beam_name}_loads',shape=(n,6),val=0)
-            loads[:,0:3], loads[:, 3:6] = forces*load_factor, moments*load_factor
+            loads[:,0:3] = forces*load_factor
+            #loads[:, 3:6] = moments*load_factor
 
           
             for j, bnode in enumerate(beam_nodes):
