@@ -30,7 +30,7 @@ class StressTube(csdl.Model):
         bend_moment_1 = local_loads[4]
         bend_moment_2 = local_loads[5]
 
-        net_moment = (bend_moment_1**2 + bend_moment_2**2)**0.5
+        net_moment = (bend_moment_1**2 + bend_moment_2**2 + 10)**0.5
 
         s_bend = net_moment*r/Iy # note: Iy = Iz for a tube
 
