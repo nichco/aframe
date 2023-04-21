@@ -58,10 +58,10 @@ class Run(csdl.Model):
 
         #self.add_design_variable('b1thickness',lower=0.0001,scaler=10)
         #self.add_design_variable('b1radius',lower=0.1,upper=0.5,scaler=1)
-        self.add_design_variable('b1_height',lower=0.1,upper=0.5,scaler=1)
+        self.add_design_variable('b1_height',lower=0.1,upper=0.3,scaler=1)
         self.add_design_variable('b1_width',lower=0.1,upper=0.5,scaler=1)
         #self.add_design_variable('b1t_web',lower=0.0005,upper=0.01,scaler=1E4)
-        self.add_design_variable('b1t_cap',lower=0.0005,upper=0.01,scaler=1E4)
+        self.add_design_variable('b1t_cap',lower=0.0001,upper=0.01,scaler=1E4)
         self.add_objective('mass',scaler=1E-1)
         
         
