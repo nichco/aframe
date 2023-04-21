@@ -108,18 +108,23 @@ class BeamGroup(ModuleCSDL):
             n = beams[beam_name]['n']
 
             if beams[beam_name]['type'] == 'tube':
-                thickness = self.declare_variable(beam_name+'thickness',shape=(n - 1),val=0.001)
-                radius = self.declare_variable(beam_name+'radius',shape=(n - 1),val=0.25)
+                #thickness = self.declare_variable(beam_name+'thickness',shape=(n - 1),val=0.001)
+                #radius = self.declare_variable(beam_name+'radius',shape=(n - 1),val=0.25)
+
+                thickness = self.register_module_input(beam_name+'_thickness',shape=(n-1))
+                radius = self.register_module_input(beam_name+'_radius',shape=(n-1))
+
+
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)
 
-                    if mesh_units == 'ft':
-                        self.register_output(element_name+'thickness',thickness[i]/3.281)
-                        self.register_output(element_name+'radius',radius[i]/3.281)
+                    #if mesh_units == 'ft':
+                    #    self.register_output(element_name+'thickness',thickness[i]/3.281)
+                    #    self.register_output(element_name+'radius',radius[i]/3.281)
 
-                    elif mesh_units == 'm':
-                        self.register_output(element_name+'thickness',1*thickness[i])
-                        self.register_output(element_name+'radius',1*radius[i])
+                    #elif mesh_units == 'm':
+                    self.register_output(element_name+'thickness',1*thickness[i])
+                    self.register_output(element_name+'radius',1*radius[i])
 
             elif beams[beam_name]['type'] == 'box':
 
@@ -270,6 +275,7 @@ class BeamGroup(ModuleCSDL):
         max_stress = csdl.max(vonmises_stress)
         #self.register_output('max_stress',max_stress)
         self.register_module_output('max_stress', max_stress)
+        self.print_var(max_stress/1E6)
         
 
         #margin = (sy/(max_stress*fos)) - 1

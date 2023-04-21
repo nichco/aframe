@@ -60,10 +60,18 @@ class LinearBeamCSDL(ModuleCSDL):
 
         for beam_name in beams:
             n = beams[beam_name]['n']
-            # xweb = self.register_module_input(beam_name+'t_web_in',shape=(n-1), computed_upstream=False)
-            xcap = self.register_module_input(beam_name+'t_cap_in',shape=(n-1), computed_upstream=False)
-            # self.register_output(beam_name+'t_web',1*xweb)
-            self.register_output(beam_name+'t_cap',1*xcap)
+            typ = beams[beam_name]['type']
+
+            if typ == 'box':
+                # xweb = self.register_module_input(beam_name+'t_web_in',shape=(n-1), computed_upstream=False)
+                xcap = self.register_module_input(beam_name+'t_cap_in',shape=(n-1), computed_upstream=False)
+                # self.register_output(beam_name+'t_web',1*xweb)
+                self.register_output(beam_name+'t_cap',1*xcap)
+            elif typ == 'tube':
+                thickness = self.register_module_input(beam_name+'thickness_in',shape=(n-1), computed_upstream=False)
+                radius = self.register_module_input(beam_name+'radius_in',shape=(n-1), computed_upstream=False)
+                self.register_output(beam_name+'_thickness', 1*thickness)
+                self.register_output(beam_name+'_radius', 1*radius)
 
         # solve the beam group:
         self.add_module(BeamGroup(beams=beams,bounds=bounds,joints=joints,mesh_units='ft',load_factor=load_factor), name='BeamGroup')
