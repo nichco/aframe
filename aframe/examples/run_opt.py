@@ -37,7 +37,7 @@ class Run(csdl.Model):
 
 
         dummy_loads = np.zeros((15,3))
-        dummy_loads[:,2] = 500
+        dummy_loads[:,2] = 5000
         self.create_input('b1_forces',shape=(15,3),val=dummy_loads)
 
 
@@ -80,22 +80,28 @@ if __name__ == '__main__':
     beams[name] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'box','n': 15,'a': [0,0,0],'b': [10,0,0]}
     
 
-    name = 'root'
+    name = 'root1'
     bounds[name] = {}
     bounds[name]['beam'] = 'b1'
     bounds[name]['fpos'] = 'a'
-    bounds[name]['fdim'] = [1,1,1,1,1,1] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
+    bounds[name]['fdim'] = [1,1,1,0,0,0] # [x, y, z, phi, theta, psi]: a 1 indicates the corresponding dof is fixed
+
+    name = 'root2'
+    bounds[name] = {}
+    bounds[name]['beam'] = 'b1'
+    bounds[name]['fpos'] = 'b'
+    bounds[name]['fdim'] = [1,1,1,0,0,0]
 
 
 
 
     sim = python_csdl_backend.Simulator(Run(beams=beams,bounds=bounds,joints=joints))
-    #sim.run()
+    sim.run()
 
-    prob = CSDLProblem(problem_name='run_opt', simulator=sim)
-    optimizer = SLSQP(prob, maxiter=1000, ftol=1E-10)
-    optimizer.solve()
-    optimizer.print_results()
+    #prob = CSDLProblem(problem_name='run_opt', simulator=sim)
+    #optimizer = SLSQP(prob, maxiter=1000, ftol=1E-10)
+    #optimizer.solve()
+    #optimizer.print_results()
 
     
     U = sim['U']
