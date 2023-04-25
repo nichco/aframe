@@ -132,9 +132,9 @@ class BeamGroup(ModuleCSDL):
                 #height_mesh = self.register_module_input(beam_name+'_height',shape=(n),promotes=True)
 
                 width_mesh_i = self.register_module_input(beam_name+'_width',shape=(n,3),promotes=True)
-                width_mesh = csdl.pnorm(width_mesh_i,axis=1,pnorm_type=2)*0.4
+                width_mesh = csdl.pnorm(width_mesh_i,axis=1,pnorm_type=2)*0.5/3.281
                 height_mesh_i = self.register_module_input(beam_name+'_height',shape=(n,3),promotes=True)
-                height_mesh = csdl.pnorm(height_mesh_i,axis=1,pnorm_type=2)*0.9
+                height_mesh = csdl.pnorm(height_mesh_i,axis=1,pnorm_type=2)*0.9/3.281
 
                 #t_web = self.register_module_input(beam_name+'t_web',shape=(n-1))
                 t_cap = self.register_module_input(beam_name+'t_cap',shape=(n-1))

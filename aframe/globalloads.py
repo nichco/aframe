@@ -73,9 +73,6 @@ class GlobalLoads(csdl.Model):
                     #else: print('constrained: ', ind)
 
 
-            
-                    
-        #print(b_index_list)
         #self.print_var(nodal_loads)
 
         # sum the nodal loads over the beams (so that loads can be doubly defined where beams join):
