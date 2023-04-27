@@ -201,7 +201,7 @@ class BeamGroup(ModuleCSDL):
         # solve the linear system
         solve_res = self.create_implicit_operation(Model(dim=dim))
         solve_res.declare_state(state='U', residual='R')
-        solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-5,)
+        solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-8,)
         solve_res.linear_solver = csdl.ScipyKrylov()
         U = solve_res(K, Fi)
 
