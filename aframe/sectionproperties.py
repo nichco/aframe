@@ -76,11 +76,15 @@ class SectionPropertiesBox(csdl.Model):
         height_i = height - 2*t_cap
 
         # Compute the area, area moments of inertia, and polar moment of inertia
-        A = width*height - width_i*height_i
+        A = (width*height) - (width_i*height_i)
         Iz = ((width**3)*height - (width_i**3)*height_i)/12
         Iy = (width*(height**3) - width_i*(height_i**3))/12
         J = (width*height*(height**2 + width**2)/12) - (width_i*height_i*(height_i**2 + width_i**2)/12)
         Q = 2*(height/2)*t_web*(height/4) + (width - 2*t_web)*t_cap*((height/2) - (t_cap/2)) # first area of moment at the centroid
+
+
+        #Qx = width*t_cap*((height/2) - (t_cap/2)) + t_web*((height/2) - t_cap)**2
+        
 
 
         self.register_output(name+'A', A)

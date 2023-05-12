@@ -96,7 +96,9 @@ if __name__ == '__main__':
 
 
     sim = python_csdl_backend.Simulator(Run(beams=beams,bounds=bounds,joints=joints))
-    #sim.run()
+    sim.run()
+
+    exit()
 
     prob = CSDLProblem(problem_name='run_opt', simulator=sim)
     optimizer = SLSQP(prob, maxiter=1000, ftol=1E-8)
@@ -120,11 +122,8 @@ if __name__ == '__main__':
     print(sim['mass'])
 
     
-    #fig = plt.figure()
-    #ax = fig.add_subplot(projection='3d')
-    plt.rcParams['figure.figsize'] = [10, 3.0]
-    plt.figure(layout='constrained')
-    fig, ax1 = plt.subplots()
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
 
 
     for beam_name in beams:
@@ -140,45 +139,10 @@ if __name__ == '__main__':
             y = np.array([na[1], nb[1]])
             z = np.array([na[2], nb[2]])
 
-            ax1.plot(y,z,color='k',label='_nolegend_',linewidth=max(b1t_cap[i]*0.5E4,1))
-            ax1.scatter(na[1], na[2],color='yellow',edgecolors='black',linewidth=1,zorder=10,label='_nolegend_',s=max(b1t_cap[i]*1E5,40))
-            ax1.scatter(nb[1], nb[2],color='yellow',edgecolors='black',linewidth=1,zorder=10,label='_nolegend_',s=max(b1t_cap[i]*1E5,40))
+            ax.plot(x,y,z,color='k',label='_nolegend_',linewidth=max(b1t_cap[i]*0.5E4,1))
+            ax.scatter(na[0], na[1], na[2],color='yellow',edgecolors='black',linewidth=1,zorder=10,label='_nolegend_',s=max(b1t_cap[i]*1E5,40))
+            ax.scatter(nb[0], nb[1], nb[2],color='yellow',edgecolors='black',linewidth=1,zorder=10,label='_nolegend_',s=max(b1t_cap[i]*1E5,40))
 
 
-    from scipy import interpolate
-
-    x = np.linspace(0,10,7)
-    lim = np.ones(7)*2.3
-    tck = interpolate.splrep(x, vonmises_stress/1E8, k=3, s=1)
-    xp = np.linspace(0,10,100)
-    y = interpolate.splev(xp, tck, der=0)
-    ax1.plot(xp,y,color='tomato')
-    ax1.plot(x,lim,linestyle='dashed',color='black',linewidth=1)
-
-    ax1.set_ylim(-0.1,3)
-    ax1.set_ylabel('deflection (m) / stress ($X10^8$ Pa)')
-    plt.legend(['Von-Mises stress','maximum allowable stress'],loc='lower right')
-
-
-    ax2 = ax1.twinx()
-
-    x = np.linspace(0,10,8)
-    loads = -1*np.flip(np.array([0,-102.3,-144.9,-161.5,-176.22,-183.54,-187.04,-189.1]))
-    tck = interpolate.splrep(x, loads, k=3, s=1)
-    xp = np.linspace(0,10,100)
-    y = interpolate.splev(xp, tck, der=0)
-    ax2.plot(xp,y,color='royalblue')
-    ax2.set_ylabel('lifting force (N)')
-
-
-    plt.legend(['lift distribution'])
-
-    plt.xlabel('spanwise position')
-
-    plt.xticks([])
-
-    plt.xlim(0,10.5)
-
-    plt.savefig('wing.png',format='png',dpi=1200,transparent=True,bbox_inches="tight")
 
     plt.show()

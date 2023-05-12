@@ -72,11 +72,11 @@ class BeamGroup(ModuleCSDL):
             rho, typ = beams[beam_name]['rho'], beams[beam_name]['type']
 
             # register the mesh input:
-            mesh_input = self.register_module_input(beam_name,shape=(n,3), promotes=True)
+            mesh = mesh_input = self.register_module_input(beam_name,shape=(n,3), promotes=True)
             #self.print_var(mesh_input)
 
-            if mesh_units == 'ft': mesh = mesh_input/3.281
-            elif mesh_units == 'm': mesh = mesh_input
+            #if mesh_units == 'ft': mesh = mesh_input/3.281
+            #elif mesh_units == 'm': mesh = mesh_input
 
             # iterate over the beam elements:
             for i in range(n - 1):
@@ -106,7 +106,7 @@ class BeamGroup(ModuleCSDL):
         # parse the cross section parameter meshes:
         for beam_name in beams:
             n = beams[beam_name]['n']
-
+            
             if beams[beam_name]['type'] == 'tube':
                 #thickness = self.declare_variable(beam_name+'thickness',shape=(n - 1),val=0.001)
                 #radius = self.declare_variable(beam_name+'radius',shape=(n - 1),val=0.25)
@@ -128,17 +128,20 @@ class BeamGroup(ModuleCSDL):
 
             elif beams[beam_name]['type'] == 'box':
 
-                #width_mesh = self.register_module_input(beam_name+'_width',shape=(n),promotes=True)
-                #height_mesh = self.register_module_input(beam_name+'_height',shape=(n),promotes=True)
+                width_mesh = self.register_module_input(beam_name+'_width',shape=(n),promotes=True)
+                height_mesh = self.register_module_input(beam_name+'_height',shape=(n),promotes=True)
 
-                width_mesh_i = self.register_module_input(beam_name+'_width',shape=(n,3),promotes=True)
-                width_mesh = csdl.pnorm(width_mesh_i,axis=1,pnorm_type=2)*0.4/3.281
-                height_mesh_i = self.register_module_input(beam_name+'_height',shape=(n,3),promotes=True)
-                height_mesh = csdl.pnorm(height_mesh_i,axis=1,pnorm_type=2)*1/3.281
+                #width_mesh_i = self.register_module_input(beam_name+'_width',shape=(n,3),promotes=True)
+                #width_mesh = csdl.pnorm(width_mesh_i,axis=1,pnorm_type=2)*0.4/3.281
+                #height_mesh_i = self.register_module_input(beam_name+'_height',shape=(n,3),promotes=True)
+                #height_mesh = csdl.pnorm(height_mesh_i,axis=1,pnorm_type=2)*1/3.281
 
-                #t_web = self.register_module_input(beam_name+'t_web',shape=(n-1))
+                t_web = self.register_module_input(beam_name+'t_web',shape=(n-1))
                 t_cap = self.register_module_input(beam_name+'t_cap',shape=(n-1))
-                t_web = 1*t_cap # temporarily make the web and cap the same thickness
+                #t_web = 1*t_cap # temporarily make the web and cap the same thickness
+
+                self.print_var(t_web)
+                self.print_var(t_cap)
 
 
                 # process the meshes to get average element dimensions:
@@ -147,16 +150,19 @@ class BeamGroup(ModuleCSDL):
                 for i in range(n-1): width[i] = (width_mesh[i] + width_mesh[i+1])/2
                 for i in range(n-1): height[i] = (height_mesh[i] + height_mesh[i+1])/2
 
+                #self.print_var(width)
+                #self.print_var(height)
+
                 for i in range(n - 1):
-                    element_name = beam_name + '_element_' + str(i)
+                        element_name = beam_name + '_element_' + str(i)
 
-                    if mesh_units == 'ft':
-                        self.register_output(element_name+'width',width[i]/3.281)
-                        self.register_output(element_name+'height',height[i]/3.281)
-                        self.register_output(element_name+'t_web',t_web[i]) # thickness units are still meters
-                        self.register_output(element_name+'t_cap',t_cap[i])
+                    #if mesh_units == 'ft':
+                    #    self.register_output(element_name+'width',width[i]/3.281)
+                    #    self.register_output(element_name+'height',height[i]/3.281)
+                    #    self.register_output(element_name+'t_web',t_web[i]) # thickness units are still meters
+                    #    self.register_output(element_name+'t_cap',t_cap[i])
 
-                    elif mesh_units == 'm':
+                    #elif mesh_units == 'm':
                         self.register_output(element_name+'width',1*width[i])
                         self.register_output(element_name+'height',1*height[i])
                         self.register_output(element_name+'t_web',1*t_web[i])
@@ -188,6 +194,10 @@ class BeamGroup(ModuleCSDL):
         self.add(GlobalK(dim=dim,elements=elements,bounds=bounds,node_index=node_index,nodes=nodes), name='GlobalK')
         K = self.declare_variable('K',shape=(dim,dim))
 
+
+        # compute the cg and moi:
+        self.add(MassProp(elements=elements), name='MassProp')
+
         # create the global loads vector:
         self.add(GlobalLoads(beams=beams,num_unique_nodes=num_unique_nodes,nodes=nodes,node_index=node_index,bounds=bounds,load_factor=load_factor), name='GlobalLoads')
         Fi = self.declare_variable('Fi',shape=(dim))
@@ -201,7 +211,7 @@ class BeamGroup(ModuleCSDL):
         # solve the linear system
         solve_res = self.create_implicit_operation(Model(dim=dim))
         solve_res.declare_state(state='U', residual='R')
-        solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-8,)
+        solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-7,)
         solve_res.linear_solver = csdl.ScipyKrylov()
         U = solve_res(K, Fi)
 
@@ -279,7 +289,7 @@ class BeamGroup(ModuleCSDL):
 
         
         # compute the cg and moi:
-        self.add(MassProp(elements=elements), name='MassProp')
+        #self.add(MassProp(elements=elements), name='MassProp')
 
 
 

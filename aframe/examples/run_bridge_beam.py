@@ -3,7 +3,7 @@ import csdl
 import python_csdl_backend
 import matplotlib.pyplot as plt
 from aframe.beamgroup import BeamGroup
-
+plt.rcParams.update(plt.rcParamsDefault)
 
 
 class Run(csdl.Model):
