@@ -15,10 +15,8 @@ axis_nodes_dict = sio.loadmat('axis_nodes.mat')
 axis_nodes = axis_nodes_dict['axis_nodes']/39.3700787
 # add the initial node:
 axis_nodes = np.concatenate([np.array([[9.86,0,1.042]]),axis_nodes]) # check values
-#print(axis_nodes)
 airfoil_ribs_points_dict = sio.loadmat('ribs_oml_points.mat')
 airfoil_ribs_points = airfoil_ribs_points_dict['airfoil_ribs_points']/39.3700787
-#print(np.shape(airfoil_ribs_points))
 
 
 w, h = np.zeros((len(axis_nodes))), np.zeros((len(axis_nodes)))
@@ -124,21 +122,16 @@ if __name__ == '__main__':
     
     U = sim['U']
     vonmises_stress = sim['vonmises_stress']
-    #b1height = sim['b1_height']
-    #b1width = sim['b1_width']
     b1t_cap = sim['b1t_cap']
     b1t_web = sim['b1t_web']
     print('stress: ', vonmises_stress)
-    #print('height: ', b1height)
-    #print('width: ', b1width)
     print('t_web: ', b1t_web)
     print('t_cap: ', b1t_cap)
     print(sim['mass'])
 
-    
+    # plotting:
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
-
 
     for beam_name in beams:
         num_beam_nodes = beams[beam_name]['n']
@@ -156,7 +149,6 @@ if __name__ == '__main__':
             ax.plot(x,y,z,color='k',label='_nolegend_',linewidth=2)
             ax.scatter(na[0], na[1], na[2],color='yellow',edgecolors='black',linewidth=1,zorder=10,label='_nolegend_',s=30)
             ax.scatter(nb[0], nb[1], nb[2],color='yellow',edgecolors='black',linewidth=1,zorder=10,label='_nolegend_',s=30)
-
 
 
     ax.set_xlim(9.5,11)
