@@ -126,17 +126,8 @@ class BeamGroup(ModuleCSDL):
                 width_mesh = self.register_module_input(beam_name+'_width',shape=(n-1),promotes=True)
                 height_mesh = self.register_module_input(beam_name+'_height',shape=(n-1),promotes=True)
 
-                #width_mesh_i = self.register_module_input(beam_name+'_width',shape=(n,3),promotes=True)
-                #width_mesh = csdl.pnorm(width_mesh_i,axis=1,pnorm_type=2)*0.4/3.281
-                #height_mesh_i = self.register_module_input(beam_name+'_height',shape=(n,3),promotes=True)
-                #height_mesh = csdl.pnorm(height_mesh_i,axis=1,pnorm_type=2)*1/3.281
-
                 t_web = self.register_module_input(beam_name+'t_web',shape=(n-1))
                 t_cap = self.register_module_input(beam_name+'t_cap',shape=(n-1))
-                #t_web = 1*t_cap # temporarily make the web and cap the same thickness
-
-                self.print_var(t_web)
-                self.print_var(t_cap)
 
 
                 # process the meshes to get average element dimensions:
@@ -146,19 +137,12 @@ class BeamGroup(ModuleCSDL):
                 for i in range(n-1): height[i] = (height_mesh[i] + height_mesh[i+1])/2
 
                 for i in range(n - 1):
-                        element_name = beam_name + '_element_' + str(i)
+                    element_name = beam_name + '_element_' + str(i)
 
-                    #if mesh_units == 'ft':
-                    #    self.register_output(element_name+'width',width[i]/3.281)
-                    #    self.register_output(element_name+'height',height[i]/3.281)
-                    #    self.register_output(element_name+'t_web',t_web[i]) # thickness units are still meters
-                    #    self.register_output(element_name+'t_cap',t_cap[i])
-
-                    #elif mesh_units == 'm':
-                        self.register_output(element_name+'width',1*width[i])
-                        self.register_output(element_name+'height',1*height[i])
-                        self.register_output(element_name+'t_web',1*t_web[i])
-                        self.register_output(element_name+'t_cap',1*t_cap[i])
+                    self.register_output(element_name+'width',1*width[i])
+                    self.register_output(element_name+'height',1*height[i])
+                    self.register_output(element_name+'t_web',1*t_web[i])
+                    self.register_output(element_name+'t_cap',1*t_cap[i])
 
 
 
