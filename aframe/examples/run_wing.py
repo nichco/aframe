@@ -51,7 +51,7 @@ class Run(csdl.Model):
         self.create_input('b1_height',shape=(8),val=np.linspace(0.153,0.1,8))
         self.create_input('b1_width',shape=(8),val=np.linspace(0.2133,0.463,8))
         #self.create_input('b1t_web',shape=(14),val=0.002)
-        self.create_input('b1t_cap',shape=(7),val=np.array([0.0005, 0.00063, 0.00079902, 0.0009, 0.00187722, 0.0030468, 0.00421048]))
+        self.create_input('b1_t_cap',shape=(7),val=np.array([0.0005, 0.00063, 0.00079902, 0.0009, 0.00187722, 0.0030468, 0.00421048]))
         
         # solve the beam group:
         self.add(BeamGroup(beams=beams,bounds=bounds,joints=joints), name='BeamGroup')
@@ -65,7 +65,7 @@ class Run(csdl.Model):
         #self.add_design_variable('b1_height',lower=0.1,upper=0.3,scaler=1)
         #self.add_design_variable('b1_width',lower=0.1,upper=0.5,scaler=1)
         #self.add_design_variable('b1t_web',lower=0.0005,upper=0.01,scaler=1E4)
-        self.add_design_variable('b1t_cap',lower=0.0001,upper=0.01,scaler=1E3)
+        self.add_design_variable('b1_t_cap',lower=0.0001,upper=0.01,scaler=1E3)
         self.add_objective('mass',scaler=1E-2)
         
         
