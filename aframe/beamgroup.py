@@ -21,16 +21,13 @@ class BeamGroup(ModuleCSDL):
         self.parameters.declare('bounds',default={})
         self.parameters.declare('mesh_units',default='m')
         self.parameters.declare('load_factor',default=1)
-        self.parameters.declare('sy',default=450E6)
-        self.parameters.declare('fos',default=1)
+
     def define(self):
         beams = self.parameters['beams']
         joints = self.parameters['joints']
         bounds = self.parameters['bounds']
         mesh_units = self.parameters['mesh_units']
         load_factor = self.parameters['load_factor']
-        sy = self.parameters['sy']
-        fos = self.parameters['fos']
 
 
         # error handling
@@ -72,8 +69,7 @@ class BeamGroup(ModuleCSDL):
             rho, typ = beams[beam_name]['rho'], beams[beam_name]['type']
 
             # register the mesh input:
-            mesh = mesh_input = self.register_module_input(beam_name,shape=(n,3), promotes=True)
-            #self.print_var(mesh_input)
+            mesh = self.register_module_input(beam_name,shape=(n,3), promotes=True)
 
             # iterate over the beam elements:
             for i in range(n - 1):
@@ -109,32 +105,18 @@ class BeamGroup(ModuleCSDL):
                 thickness = self.register_module_input(beam_name+'_thickness',shape=(n-1))
                 radius = self.register_module_input(beam_name+'_radius',shape=(n-1))
 
-
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)
 
-                    #if mesh_units == 'ft':
-                    #    self.register_output(element_name+'thickness',thickness[i]/3.281)
-                    #    self.register_output(element_name+'radius',radius[i]/3.281)
-
-                    #elif mesh_units == 'm':
                     self.register_output(element_name+'thickness',1*thickness[i])
                     self.register_output(element_name+'radius',1*radius[i])
 
             elif beams[beam_name]['type'] == 'box':
 
-                width_mesh = self.register_module_input(beam_name+'_width',shape=(n-1),promotes=True)
-                height_mesh = self.register_module_input(beam_name+'_height',shape=(n-1),promotes=True)
-
-                t_web = self.register_module_input(beam_name+'t_web',shape=(n-1))
-                t_cap = self.register_module_input(beam_name+'t_cap',shape=(n-1))
-
-
-                # process the meshes to get average element dimensions:
-                width = self.create_output(beam_name+'element_width',shape=(n-1))
-                height = self.create_output(beam_name+'element_height',shape=(n-1))
-                for i in range(n-1): width[i] = (width_mesh[i] + width_mesh[i+1])/2
-                for i in range(n-1): height[i] = (height_mesh[i] + height_mesh[i+1])/2
+                width = self.register_module_input(beam_name+'_width',shape=(n-1), promotes=True)
+                height = self.register_module_input(beam_name+'_height',shape=(n-1), promotes=True)
+                t_web = self.register_module_input(beam_name+'_t_web',shape=(n-1))
+                t_cap = self.register_module_input(beam_name+'_t_cap',shape=(n-1))
 
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)
@@ -170,15 +152,12 @@ class BeamGroup(ModuleCSDL):
         self.add(GlobalK(dim=dim,elements=elements,bounds=bounds,node_index=node_index,nodes=nodes), name='GlobalK')
         K = self.declare_variable('K',shape=(dim,dim))
 
-
-        # compute the cg and moi:
+        # compute the mass properties:
         self.add(MassProp(elements=elements), name='MassProp')
 
         # create the global loads vector:
         self.add(GlobalLoads(beams=beams,num_unique_nodes=num_unique_nodes,nodes=nodes,node_index=node_index,bounds=bounds,load_factor=load_factor), name='GlobalLoads')
         Fi = self.declare_variable('Fi',shape=(dim))
-
-
 
 
 
@@ -190,8 +169,6 @@ class BeamGroup(ModuleCSDL):
         solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-7,)
         solve_res.linear_solver = csdl.ScipyKrylov()
         U = solve_res(K, Fi)
-
-
 
 
 
@@ -253,23 +230,11 @@ class BeamGroup(ModuleCSDL):
 
         # compute the maximum stress in the entire system:
         max_stress = csdl.max(vonmises_stress)
-        #self.register_output('max_stress',max_stress)
         self.register_module_output('max_stress', max_stress)
-        self.print_var(max_stress/1E6)
+        #self.print_var(max_stress/1E6)
         
 
-        #margin = (sy/(max_stress*fos)) - 1
-        #self.register_output('margin', margin)
-        #self.print_var(margin)
-
-
-        
-        # compute the cg and moi:
-        #self.add(MassProp(elements=elements), name='MassProp')
-
-
-
-        # output dummy forces and moments:
+        # output dummy forces and moments for CADDEE:
         zero = self.declare_variable('zero_vec',shape=(3),val=0)
         self.register_output('F', 1*zero)
         self.register_output('M', 1*zero)

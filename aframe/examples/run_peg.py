@@ -37,9 +37,9 @@ for i in range(len(axis_nodes) - 1):
 
 
 
-loads_1g_aero_static_dict = sio.loadmat('loads_2p5g_n1g_aero_static.mat')
-static_forces = loads_1g_aero_static_dict['forces']*4.44822162
-static_moments = loads_1g_aero_static_dict['moments']*0.11298482933333
+loads_dict = sio.loadmat('loads_2p5g_n1g_aero_static.mat')
+static_forces = loads_dict['forces']*4.44822162
+static_moments = loads_dict['moments']*0.11298482933333
 
 forces, moments = np.zeros((len(axis_nodes),3)), np.zeros((len(axis_nodes),3))
 for i in range(len(axis_nodes) - 2):
@@ -60,15 +60,14 @@ class Run(csdl.Model):
         joints = self.parameters['joints']
 
 
-        axis_nodes_var = self.create_input('axis_nodes_var',axis_nodes)
-        for beam_name in beams:
+        axis_nodes_var = self.create_input('axis_nodes_var', axis_nodes)
+        for beam_name in beams: 
             self.register_output(beam_name, 1*axis_nodes_var)
 
-        self.create_input('b1_height',shape=(len(axis_nodes)),val=h)
-        self.create_input('b1_width',shape=(len(axis_nodes)),val=w)
-        self.create_input('b1t_cap',shape=(len(axis_nodes) - 1),val=0.001)
-        self.create_input('b1t_web',shape=(len(axis_nodes) - 1),val=0.001)
-
+        self.create_input('b1_height',shape=(len(axis_nodes) - 1), val=h[0:-1])
+        self.create_input('b1_width',shape=(len(axis_nodes) - 1), val=w[0:-1])
+        self.create_input('b1_t_cap',shape=(len(axis_nodes) - 1), val=0.001)
+        self.create_input('b1_t_web',shape=(len(axis_nodes) - 1), val=0.001)
         self.create_input('b1_forces',shape=(len(axis_nodes),3),val=forces)
         self.create_input('b1_moments',shape=(len(axis_nodes),3),val=moments)
 
@@ -78,8 +77,8 @@ class Run(csdl.Model):
 
 
         self.add_constraint('vonmises_stress',upper=450E6/1,scaler=1E-8)
-        self.add_design_variable('b1t_cap',lower=0.001,upper=0.03,scaler=1E3)
-        self.add_design_variable('b1t_web',lower=0.001,upper=0.03,scaler=1E3)
+        self.add_design_variable('b1_t_cap',lower=0.001,upper=0.03,scaler=1E3)
+        self.add_design_variable('b1_t_web',lower=0.001,upper=0.03,scaler=1E3)
         self.add_objective('mass',scaler=1E-2)
         
         
@@ -94,25 +93,13 @@ if __name__ == '__main__':
     plt.rcParams.update({'font.size': 12})
 
     joints, bounds, beams = {}, {}, {}
-
-    
-    name = 'b1'
-    beams[name] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'box','n': len(axis_nodes)}
-    
-
-    name = 'root'
-    bounds[name] = {}
-    bounds[name]['beam'] = 'b1'
-    bounds[name]['fpos'] = 'a'
-    bounds[name]['fdim'] = [1,1,1,1,1,1]
-
-
+    beams['b1'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'box','n': len(axis_nodes)}
+    bounds['root'] = {'beam': 'b1','fpos': 'a','fdim':[1,1,1,1,1,1]}
 
 
     sim = python_csdl_backend.Simulator(Run(beams=beams,bounds=bounds,joints=joints))
     #sim.run()
 
-    
     
     prob = CSDLProblem(problem_name='run_opt', simulator=sim)
     optimizer = SLSQP(prob, maxiter=1000, ftol=1E-8)
@@ -122,12 +109,13 @@ if __name__ == '__main__':
     
     U = sim['U']
     vonmises_stress = sim['vonmises_stress']
-    b1t_cap = sim['b1t_cap']
-    b1t_web = sim['b1t_web']
+    b1t_cap = sim['b1_t_cap']
+    b1t_web = sim['b1_t_web']
     print('stress: ', vonmises_stress)
     print('t_web: ', b1t_web)
     print('t_cap: ', b1t_cap)
     print(sim['mass'])
+
 
     # plotting:
     fig = plt.figure()
@@ -153,6 +141,5 @@ if __name__ == '__main__':
 
     ax.set_xlim(9.5,11)
     ax.set_ylim(0,14)
-    ax.set_zlim(0.5,2)
-
+    ax.set_zlim(0,10)
     plt.show()
