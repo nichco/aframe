@@ -75,9 +75,6 @@ class BeamGroup(ModuleCSDL):
             mesh = mesh_input = self.register_module_input(beam_name,shape=(n,3), promotes=True)
             #self.print_var(mesh_input)
 
-            #if mesh_units == 'ft': mesh = mesh_input/3.281
-            #elif mesh_units == 'm': mesh = mesh_input
-
             # iterate over the beam elements:
             for i in range(n - 1):
                 element_name = beam_name + '_element_' + str(i)
@@ -108,8 +105,6 @@ class BeamGroup(ModuleCSDL):
             n = beams[beam_name]['n']
             
             if beams[beam_name]['type'] == 'tube':
-                #thickness = self.declare_variable(beam_name+'thickness',shape=(n - 1),val=0.001)
-                #radius = self.declare_variable(beam_name+'radius',shape=(n - 1),val=0.25)
 
                 thickness = self.register_module_input(beam_name+'_thickness',shape=(n-1))
                 radius = self.register_module_input(beam_name+'_radius',shape=(n-1))
@@ -128,8 +123,8 @@ class BeamGroup(ModuleCSDL):
 
             elif beams[beam_name]['type'] == 'box':
 
-                width_mesh = self.register_module_input(beam_name+'_width',shape=(n),promotes=True)
-                height_mesh = self.register_module_input(beam_name+'_height',shape=(n),promotes=True)
+                width_mesh = self.register_module_input(beam_name+'_width',shape=(n-1),promotes=True)
+                height_mesh = self.register_module_input(beam_name+'_height',shape=(n-1),promotes=True)
 
                 #width_mesh_i = self.register_module_input(beam_name+'_width',shape=(n,3),promotes=True)
                 #width_mesh = csdl.pnorm(width_mesh_i,axis=1,pnorm_type=2)*0.4/3.281
@@ -149,9 +144,6 @@ class BeamGroup(ModuleCSDL):
                 height = self.create_output(beam_name+'element_height',shape=(n-1))
                 for i in range(n-1): width[i] = (width_mesh[i] + width_mesh[i+1])/2
                 for i in range(n-1): height[i] = (height_mesh[i] + height_mesh[i+1])/2
-
-                #self.print_var(width)
-                #self.print_var(height)
 
                 for i in range(n - 1):
                         element_name = beam_name + '_element_' + str(i)
