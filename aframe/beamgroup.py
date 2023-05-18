@@ -69,8 +69,8 @@ class BeamGroup(ModuleCSDL):
             rho, typ = beams[beam_name]['rho'], beams[beam_name]['type']
 
             # register the mesh input:
-            mesh = self.register_module_input(beam_name,shape=(n,3), promotes=True)/3.281
-            self.print_var(mesh)
+            mesh = self.register_module_input(beam_name,shape=(n,3), promotes=True)
+            #self.print_var(mesh)
 
             # iterate over the beam elements:
             for i in range(n - 1):
@@ -114,11 +114,11 @@ class BeamGroup(ModuleCSDL):
 
             elif beams[beam_name]['type'] == 'box':
 
-                width_in = self.register_module_input(beam_name+'_width',shape=(n), promotes=True)/3.281
-                height_in = self.register_module_input(beam_name+'_height',shape=(n), promotes=True)/3.281
+                width_in = self.register_module_input(beam_name+'_width',shape=(n), promotes=True)
+                height_in = self.register_module_input(beam_name+'_height',shape=(n), promotes=True)
 
-                self.print_var(width_in)
-                self.print_var(height_in)
+                #self.print_var(width_in)
+                #self.print_var(height_in)
                 
                 t_web = self.register_module_input(beam_name+'_t_web',shape=(n-1))
                 t_cap = self.register_module_input(beam_name+'_t_cap',shape=(n-1))
@@ -179,7 +179,7 @@ class BeamGroup(ModuleCSDL):
         # solve the linear system
         solve_res = self.create_implicit_operation(Model(dim=dim))
         solve_res.declare_state(state='U', residual='R')
-        solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-7,)
+        solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-6,)
         solve_res.linear_solver = csdl.ScipyKrylov()
         U = solve_res(K, Fi)
 
