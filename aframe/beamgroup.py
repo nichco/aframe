@@ -69,7 +69,8 @@ class BeamGroup(ModuleCSDL):
             rho, typ = beams[beam_name]['rho'], beams[beam_name]['type']
 
             # register the mesh input:
-            mesh = self.register_module_input(beam_name,shape=(n,3), promotes=True)
+            mesh = self.register_module_input(beam_name,shape=(n,3), promotes=True)/3.281
+            self.print_var(mesh)
 
             # iterate over the beam elements:
             for i in range(n - 1):
@@ -113,11 +114,17 @@ class BeamGroup(ModuleCSDL):
 
             elif beams[beam_name]['type'] == 'box':
 
-                width_in = self.register_module_input(beam_name+'_width',shape=(n), promotes=True)
-                height_in = self.register_module_input(beam_name+'_height',shape=(n), promotes=True)
+                width_in = self.register_module_input(beam_name+'_width',shape=(n), promotes=True)/3.281
+                height_in = self.register_module_input(beam_name+'_height',shape=(n), promotes=True)/3.281
+
+                self.print_var(width_in)
+                self.print_var(height_in)
                 
                 t_web = self.register_module_input(beam_name+'_t_web',shape=(n-1))
                 t_cap = self.register_module_input(beam_name+'_t_cap',shape=(n-1))
+
+                self.print_var(t_web)
+                self.print_var(t_cap)
 
                 width = self.create_output(beam_name+'element_width',shape=(n-1))
                 height = self.create_output(beam_name+'element_height',shape=(n-1))
