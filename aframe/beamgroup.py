@@ -113,10 +113,16 @@ class BeamGroup(ModuleCSDL):
 
             elif beams[beam_name]['type'] == 'box':
 
-                width = self.register_module_input(beam_name+'_width',shape=(n-1), promotes=True)
-                height = self.register_module_input(beam_name+'_height',shape=(n-1), promotes=True)
+                width_in = self.register_module_input(beam_name+'_width',shape=(n), promotes=True)
+                height_in = self.register_module_input(beam_name+'_height',shape=(n), promotes=True)
+                
                 t_web = self.register_module_input(beam_name+'_t_web',shape=(n-1))
                 t_cap = self.register_module_input(beam_name+'_t_cap',shape=(n-1))
+
+                width = self.create_output(beam_name+'element_width',shape=(n-1))
+                height = self.create_output(beam_name+'element_height',shape=(n-1))
+                for i in range(n-1): width[i] = (width_in[i] + width_in[i+1])/2
+                for i in range(n-1): height[i] = (height_in[i] + height_in[i+1])/2
 
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)
