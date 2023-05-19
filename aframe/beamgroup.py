@@ -19,14 +19,12 @@ class BeamGroup(ModuleCSDL):
         self.parameters.declare('beams',default={})
         self.parameters.declare('joints',default={})
         self.parameters.declare('bounds',default={})
-        self.parameters.declare('mesh_units',default='m')
         self.parameters.declare('load_factor',default=1)
 
     def define(self):
         beams = self.parameters['beams']
         joints = self.parameters['joints']
         bounds = self.parameters['bounds']
-        mesh_units = self.parameters['mesh_units']
         load_factor = self.parameters['load_factor']
 
 
@@ -251,3 +249,5 @@ class BeamGroup(ModuleCSDL):
         zero = self.declare_variable('zero_vec',shape=(3),val=0)
         self.register_output('F', 1*zero)
         self.register_output('M', 1*zero)
+
+

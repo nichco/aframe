@@ -34,6 +34,15 @@ class LinearBeam(MechanicsModel):
         )
 
         return csdl_model
+    
+    def beam_sisr(self, mesh, oml_mesh):
+
+        #for point in oml[]
+
+
+        pass
+
+
 
 
 class LinearBeamMesh(Module):
