@@ -41,6 +41,7 @@ ax.scatter(x[:,0],x[:,1],x[:,2],color='yellow',edgecolors='black',linewidth=1,zo
 ax.scatter(y[:,0],y[:,1],y[:,2],color='red',edgecolors='black',linewidth=1,zorder=10)
 
 
+# create the weighting matrix:
 weights = np.zeros((m,n))
 for i in range(m):
     ia = int(d[i,0])
