@@ -34,7 +34,7 @@ class LinearBeam(MechanicsModel):
         )
 
         return csdl_model
-    
+
 
 
     def sisr(self, mesh, oml):
