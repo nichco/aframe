@@ -32,8 +32,8 @@ for i in range(len(axis_nodes) - 1):
     h_front = np.linalg.norm(top_left - bot_left)
     h_back = np.linalg.norm(top_right - bot_right)
 
-    w[i+1] = (w_top + w_bot)/2
-    h[i+1] = (h_front + h_back)/2
+    w[i] = (w_top + w_bot)/2
+    h[i] = (h_front + h_back)/2
 
 
 
@@ -64,8 +64,8 @@ class Run(csdl.Model):
         for beam_name in beams: 
             self.register_output(beam_name, 1*axis_nodes_var)
 
-        self.create_input('b1_height',shape=(len(axis_nodes) - 1), val=h[0:-1])
-        self.create_input('b1_width',shape=(len(axis_nodes) - 1), val=w[0:-1])
+        self.create_input('b1_height',shape=(len(axis_nodes)), val=h)
+        self.create_input('b1_width',shape=(len(axis_nodes)), val=w)
         self.create_input('b1_t_cap',shape=(len(axis_nodes) - 1), val=0.001)
         self.create_input('b1_t_web',shape=(len(axis_nodes) - 1), val=0.001)
         self.create_input('b1_forces',shape=(len(axis_nodes),3),val=forces)
@@ -98,9 +98,11 @@ if __name__ == '__main__':
 
 
     sim = python_csdl_backend.Simulator(Run(beams=beams,bounds=bounds,joints=joints))
-    #sim.run()
+    sim.run()
 
-    
+    print(sim['b1_displacement'])
+    exit()
+
     prob = CSDLProblem(problem_name='run_opt', simulator=sim)
     optimizer = SLSQP(prob, maxiter=1000, ftol=1E-8)
     optimizer.solve()

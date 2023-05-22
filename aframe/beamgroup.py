@@ -19,14 +19,12 @@ class BeamGroup(ModuleCSDL):
         self.parameters.declare('beams',default={})
         self.parameters.declare('joints',default={})
         self.parameters.declare('bounds',default={})
-        self.parameters.declare('mesh_units',default='m')
         self.parameters.declare('load_factor',default=1)
 
     def define(self):
         beams = self.parameters['beams']
         joints = self.parameters['joints']
         bounds = self.parameters['bounds']
-        mesh_units = self.parameters['mesh_units']
         load_factor = self.parameters['load_factor']
 
 
@@ -70,6 +68,7 @@ class BeamGroup(ModuleCSDL):
 
             # register the mesh input:
             mesh = self.register_module_input(beam_name,shape=(n,3), promotes=True)
+            #self.print_var(mesh)
 
             # iterate over the beam elements:
             for i in range(n - 1):
@@ -113,10 +112,22 @@ class BeamGroup(ModuleCSDL):
 
             elif beams[beam_name]['type'] == 'box':
 
-                width = self.register_module_input(beam_name+'_width',shape=(n-1), promotes=True)
-                height = self.register_module_input(beam_name+'_height',shape=(n-1), promotes=True)
+                width_in = self.register_module_input(beam_name+'_width',shape=(n), promotes=True)
+                height_in = self.register_module_input(beam_name+'_height',shape=(n), promotes=True)
+
+                #self.print_var(width_in)
+                #self.print_var(height_in)
+                
                 t_web = self.register_module_input(beam_name+'_t_web',shape=(n-1))
                 t_cap = self.register_module_input(beam_name+'_t_cap',shape=(n-1))
+
+                #self.print_var(t_web)
+                #self.print_var(t_cap)
+
+                width = self.create_output(beam_name+'element_width',shape=(n-1))
+                height = self.create_output(beam_name+'element_height',shape=(n-1))
+                for i in range(n-1): width[i] = (width_in[i] + width_in[i+1])/2
+                for i in range(n-1): height[i] = (height_in[i] + height_in[i+1])/2
 
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)
@@ -166,7 +177,7 @@ class BeamGroup(ModuleCSDL):
         # solve the linear system
         solve_res = self.create_implicit_operation(Model(dim=dim))
         solve_res.declare_state(state='U', residual='R')
-        solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-7,)
+        solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-6,)
         solve_res.linear_solver = csdl.ScipyKrylov()
         U = solve_res(K, Fi)
 
@@ -211,6 +222,24 @@ class BeamGroup(ModuleCSDL):
             self.register_output(element_name+'node_b_def',node_b_position + dn2)
 
 
+        # the displacement outputs for each beam:
+        for beam_name in beams:
+            n = beams[beam_name]['n']
+
+            d = self.create_output(beam_name + '_displacement', shape=(n,3), val=0)
+            for i in range(n - 1):
+                element_name = beam_name + '_element_' + str(i)
+                node_a, node_b =  elements[element_name]['node_a'], elements[element_name]['node_b']
+                node_a_index, node_b_index = node_index[node_a], node_index[node_b]
+
+                dna = U[node_a_index*6:node_a_index*6 + 3] # node a displacements
+                dnb = U[node_b_index*6:node_b_index*6 + 3] # node b displacements
+
+                d[i,:] = csdl.reshape(dna, (1,3))
+            d[n - 1,:] = csdl.reshape(dnb, (1,3))
+
+
+
 
 
 
@@ -238,3 +267,5 @@ class BeamGroup(ModuleCSDL):
         zero = self.declare_variable('zero_vec',shape=(3),val=0)
         self.register_output('F', 1*zero)
         self.register_output('M', 1*zero)
+
+

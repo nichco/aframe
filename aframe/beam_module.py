@@ -72,6 +72,50 @@ class LinearBeam(MechanicsModel):
         return csdl_model
 
 
+
+    def sisr(self, mesh, oml):
+
+        x = mesh.copy()
+        y = oml.copy()
+
+        n = len(mesh)
+        m = len(oml)
+
+        d = np.zeros((m,2))
+        for i in range(m):
+            p = y[i,:]
+            dist = np.sum((x - p)**2, axis=1)
+            a = np.argsort(dist)[:2]
+            d[i,:] = a
+
+        # create the weighting matrix:
+        weights = np.zeros((m,n))
+        for i in range(m):
+            ia, ib = int(d[i,0]), int(d[i,1])
+
+            a, b = x[ia,:], x[ib,:]
+            p = y[i,:]
+
+            length = np.linalg.norm(b - a)
+            norm = (b - a)/length
+            ap = p - a
+            t = np.dot(ap,norm)
+            # c is the closest point on the line segment (a,b) to point p:
+            c =  a + t*norm
+
+            ac = np.linalg.norm(c - a)
+            wa = 1 - (ac/length)
+            wb = 1 - wa
+            
+            weights[i, ia] = wa
+            weights[i, ib] = wb
+
+
+        return weights
+
+
+
+
 class LinearBeamMesh(Module):
     def initialize(self, kwargs):
         self.parameters.declare('meshes', types=dict)
@@ -101,8 +145,9 @@ class LinearBeamCSDL(ModuleCSDL):
             if typ == 'box':
                 xweb = self.register_module_input(beam_name+'t_web_in',shape=(n-1), computed_upstream=False)
                 xcap = self.register_module_input(beam_name+'t_cap_in',shape=(n-1), computed_upstream=False)
-                self.register_output(beam_name+'t_web',1*xweb)
-                self.register_output(beam_name+'t_cap',1*xcap)
+                self.print_var(xweb)
+                self.register_output(beam_name+'_t_web',1*xweb)
+                self.register_output(beam_name+'_t_cap',1*xcap)
                 
             elif typ == 'tube':
                 thickness = self.register_module_input(beam_name+'thickness_in',shape=(n-1), computed_upstream=False)
