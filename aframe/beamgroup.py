@@ -121,8 +121,8 @@ class BeamGroup(ModuleCSDL):
                 t_web = self.register_module_input(beam_name+'_t_web',shape=(n-1))
                 t_cap = self.register_module_input(beam_name+'_t_cap',shape=(n-1))
 
-                self.print_var(t_web)
-                self.print_var(t_cap)
+                #self.print_var(t_web)
+                #self.print_var(t_cap)
 
                 width = self.create_output(beam_name+'element_width',shape=(n-1))
                 height = self.create_output(beam_name+'element_height',shape=(n-1))
@@ -220,6 +220,24 @@ class BeamGroup(ModuleCSDL):
             # assign the elemental output:
             self.register_output(element_name+'node_a_def',node_a_position + dn1)
             self.register_output(element_name+'node_b_def',node_b_position + dn2)
+
+
+        # the displacement outputs for each beam:
+        for beam_name in beams:
+            n = beams[beam_name]['n']
+
+            d = self.create_output(beam_name + '_displacement', shape=(n,3), val=0)
+            for i in range(n - 1):
+                element_name = beam_name + '_element_' + str(i)
+                node_a, node_b =  elements[element_name]['node_a'], elements[element_name]['node_b']
+                node_a_index, node_b_index = node_index[node_a], node_index[node_b]
+
+                dna = U[node_a_index*6:node_a_index*6 + 3] # node a displacements
+                dnb = U[node_b_index*6:node_b_index*6 + 3] # node b displacements
+
+                d[i,:] = csdl.reshape(dna, (1,3))
+            d[n - 1,:] = csdl.reshape(dnb, (1,3))
+
 
 
 
