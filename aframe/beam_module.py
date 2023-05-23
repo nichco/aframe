@@ -40,20 +40,47 @@ class LinearBeam(MechanicsModel):
     def construct_map_out(self, nodal_displacements_mesh):
         # Temporary dummy implementation
         num_nodes = np.cumprod(nodal_displacements_mesh.shape[:-1])[-1]
-        self.map_out = np.eye(num_nodes)
+        # self.map_out = np.eye(num_nodes)
         map_out_csdl = ModuleCSDL()
-        num_displacements = np.cumprod(nodal_displacements_mesh.shape[:-1])[-1]
-        # nodal_displacements_flattened_shape = tuple((num_displacements, nodal_displacements_mesh.shape[-1]))
-        left_wing_beam_displacements = map_out_csdl.declare_variable('left_wing_beam_displacements', shape=(int(num_nodes/2),3))
-        right_wing_beam_displacements = map_out_csdl.declare_variable('right_wing_beam_displacements', shape=(int(num_nodes/2),3))
-        solver_displacements_csdl = map_out_csdl.create_output('solver_displacements_csdl', shape=(num_nodes,3))
-        solver_displacements_csdl[:int(num_nodes/2,3)] = left_wing_beam_displacements
-        solver_displacements_csdl[int(num_nodes/2,3):] = right_wing_beam_displacements
+        # num_displacements = np.cumprod(nodal_displacements_mesh.shape[:-1])[-1]
+        # # nodal_displacements_flattened_shape = tuple((num_displacements, nodal_displacements_mesh.shape[-1]))
+        # left_wing_beam_displacements = map_out_csdl.declare_variable('left_wing_beam_displacement', shape=(int(num_nodes/2),3))
+        # right_wing_beam_displacements = map_out_csdl.declare_variable('right_wing_beam_displacement', shape=(int(num_nodes/2),3))
+        # solver_displacements_csdl = map_out_csdl.create_output('solver_displacements_csdl', shape=(num_nodes,3))
+        # solver_displacements_csdl[:int(num_nodes/2),:] = left_wing_beam_displacements
+        # solver_displacements_csdl[int(num_nodes/2):,:] = right_wing_beam_displacements
+        # # NOTE: The shape will be wrong in the near future.
+        # map_out = map_out_csdl.create_input('map_out', self.map_out.copy())
+        # nodal_displacements_csdl = csdl.matmat(map_out, solver_displacements_csdl)
+        # map_out_csdl.register_output('solver_output', nodal_displacements_csdl)
+        # self.map_out_csdl = map_out_csdl
+
+        map_out_csdl = ModuleCSDL()
+        left_wing_beam = self.parameters['mesh'].parameters['meshes']['left_wing_beam']
+        right_wing_beam = self.parameters['mesh'].parameters['meshes']['right_wing_beam']
+        left_wing_beam_mesh = nodal_displacements_mesh.value[:,:11,:].reshape((-1, 3))
+        right_wing_beam_mesh = nodal_displacements_mesh.value[:,11:,:].reshape((-1, 3))
+        left_wing_map = self.sisr(left_wing_beam.value.reshape((17,3)), oml=left_wing_beam_mesh)
+        right_wing_map = self.sisr(right_wing_beam.value.reshape((17,3)), oml=right_wing_beam_mesh)
+        output_map = np.block([
+            [left_wing_map, np.zeros(left_wing_map.shape)],
+            [np.zeros(left_wing_map.shape), right_wing_map]
+        ])
+        self.map_out = output_map
+        left_wing_beam_displacements = map_out_csdl.declare_variable('left_wing_beam_displacement', shape=left_wing_beam.shape[1:])
+        right_wing_beam_displacements = map_out_csdl.declare_variable('right_wing_beam_displacement', shape=right_wing_beam.shape[1:])
+        solver_displacements_csdl = map_out_csdl.create_output('solver_displacements_csdl', shape=(left_wing_beam.shape[1] + right_wing_beam.shape[1], 3))
+        solver_displacements_csdl[:left_wing_beam.shape[1],:] = left_wing_beam_displacements
+        solver_displacements_csdl[left_wing_beam.shape[1]:,:] = right_wing_beam_displacements
         # NOTE: The shape will be wrong in the near future.
         map_out = map_out_csdl.create_input('map_out', self.map_out.copy())
         nodal_displacements_csdl = csdl.matmat(map_out, solver_displacements_csdl)
         map_out_csdl.register_output('solver_output', nodal_displacements_csdl)
+
         self.map_out_csdl = map_out_csdl
+
+        
+
 
     def _assemble_csdl(self):
         beams = self.parameters['beams']
