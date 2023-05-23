@@ -9,18 +9,9 @@ x[:,1] = np.linspace(0,10,n)
 # create an OML mesh:
 m = 20
 y = np.zeros((m,3))
-y[:,0] = (np.random.rand(m) - 0.5)*0.25
-#y[:,0] = 0.25
-y[:,1] = np.linspace(0,10,m)
-
-
-
-# def closest_node(node, nodes):
-#     nodes = np.asarray(nodes)
-#     dist_a = np.sum((nodes - node)**2, axis=1)
-#     #a = np.argmin(dist_a)
-#     a = np.argsort(dist_a)[:2]
-#     return a
+#y[:,0] = (np.random.rand(m) - 0.5)*0.25
+y[:,0] = 0.25
+y[:,1] = np.linspace(0,12,m)
 
 
 
@@ -67,9 +58,14 @@ for i in range(m):
     ax.plot(vec_x, vec_y, vec_z, color='grey')
 
     ac = np.linalg.norm(c - a)
-    wa = 1 - (ac/length)
-    wb = 1 - wa
-    
+    bc = np.linalg.norm(c - b)
+    l = max(length, bc)
+
+    wa = (l - ac)/length
+    wb = (l - bc)/length
+
+    print(wa, wb)
+
 
     weights[i, ia] = wa
     weights[i, ib] = wb

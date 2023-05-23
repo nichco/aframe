@@ -100,43 +100,69 @@ class LinearBeam(MechanicsModel):
 
 
 
-    def sisr(self, mesh, oml):
+    def umap(self, mesh, oml):
+        # Up = W*Us
 
-        x = mesh.copy()
-        y = oml.copy()
-
-        n = len(mesh)
-        m = len(oml)
+        x, y = mesh.copy(), oml.copy()
+        n, m = len(mesh), len(oml)
 
         d = np.zeros((m,2))
         for i in range(m):
-            p = y[i,:]
-            dist = np.sum((x - p)**2, axis=1)
-            a = np.argsort(dist)[:2]
-            d[i,:] = a
+            dist = np.sum((x - y[i,:])**2, axis=1)
+            d[i,:] = np.argsort(dist)[:2]
 
         # create the weighting matrix:
         weights = np.zeros((m,n))
         for i in range(m):
             ia, ib = int(d[i,0]), int(d[i,1])
-
             a, b = x[ia,:], x[ib,:]
             p = y[i,:]
 
             length = np.linalg.norm(b - a)
             norm = (b - a)/length
-            ap = p - a
-            t = np.dot(ap,norm)
+            t = np.dot(p - a, norm)
             # c is the closest point on the line segment (a,b) to point p:
             c =  a + t*norm
 
-            ac = np.linalg.norm(c - a)
-            wa = 1 - (ac/length)
-            wb = 1 - wa
+            ac, bc = np.linalg.norm(c - a), np.linalg.norm(c - b)
+            l = max(length, bc)
             
-            weights[i, ia] = wa
-            weights[i, ib] = wb
+            weights[i, ia] = (l - ac)/length
+            weights[i, ib] = (l - bc)/length
 
+        return weights
+    
+
+
+    def fmap(self, mesh, oml):
+        # Fs = W*Fp
+
+        x, y = mesh.copy(), oml.copy()
+        n, m = len(mesh), len(oml)
+
+        d = np.zeros((m,2))
+        for i in range(m):
+            dist = np.sum((x - y[i,:])**2, axis=1)
+            d[i,:] = np.argsort(dist)[:2]
+
+        # create the weighting matrix:
+        weights = np.zeros((n, m))
+        for i in range(m):
+            ia, ib = int(d[i,0]), int(d[i,1])
+            a, b = x[ia,:], x[ib,:]
+            p = y[i,:]
+
+            length = np.linalg.norm(b - a)
+            norm = (b - a)/length
+            t = np.dot(p - a, norm)
+            # c is the closest point on the line segment (a,b) to point p:
+            c =  a + t*norm
+
+            ac, bc = np.linalg.norm(c - a), np.linalg.norm(c - b)
+            l = max(length, bc)
+            
+            weights[ia, i] = (l - ac)/length
+            weights[ib, i] = (l - bc)/length
 
         return weights
 
