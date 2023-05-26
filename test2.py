@@ -1,7 +1,7 @@
 import numpy as np
 import csdl
 import python_csdl_backend
-
+from localk import LocalK
 
 
 
@@ -49,8 +49,8 @@ class Aframe(csdl.Model):
         n = len(nodes)
 
         mesh = self.declare_variable(name + '_mesh', shape=(n,3))
-        self.create_input(name + '_E', e)
-        self.create_input(name + '_G', g)
+        #self.create_input(name + '_E', e)
+        #self.create_input(name + '_G', g)
         
         # iterate over each element:
         for i in range(n - 1):
@@ -65,7 +65,7 @@ class Aframe(csdl.Model):
             t = self.declare_variable(name + '_t', shape=(n-1))
             r = self.declare_variable(name + '_r', shape=(n-1))
 
-            for i in range(n -1):
+            for i in range(n - 1):
                 element_name = name + '_element_' + str(i)
                 self.tube(name=element_name, t=t[i], r=r[i])
 
@@ -76,9 +76,18 @@ class Aframe(csdl.Model):
             tweb = self.declare_variable(name + '_tweb', shape=(n-1))
             tcap = self.declare_variable(name + '_tcap', shape=(n-1))
 
-            for i in range(n -1):
+            for i in range(n - 1):
                 element_name = name + '_element_' + str(i)
                 self.box(name=element_name, w=w[i], h=h[i], tweb=tweb[i], tcap=tcap[i])
+
+        # calculate the stiffness matrix for each element:
+        for i in range(n - 1):
+            element_name = name + '_element_' + str(i)
+
+            E, G = e, g
+
+
+
 
 
 
@@ -103,9 +112,10 @@ class Aframe(csdl.Model):
 
 
 
-beams, joints = {}, {}
-beams['wing'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(0,10))}
-beams['boom'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10,20))}
+
+beams, bounds, joints = {}, {}, {}
+beams['wing'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
+beams['boom'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
 joints['joint'] = {'a': 4,'b': 4}
 
 sim = python_csdl_backend.Simulator(Aframe(beams=beams, joints=joints))
