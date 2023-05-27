@@ -10,10 +10,10 @@ class StressTube(csdl.Model):
     def define(self):
         name = self.parameters['name']
 
-        A = self.declare_variable(name+'A')
-        J = self.declare_variable(name+'J')
-        Iy = self.declare_variable(name+'Iy')
-        r = self.declare_variable(name+'radius')
+        A = self.declare_variable(name+'_A')
+        J = self.declare_variable(name+'_J')
+        Iy = self.declare_variable(name+'_Iy')
+        r = self.declare_variable(name+'_r')
 
         # get the local loads:
         local_loads = self.declare_variable(name+'local_loads',shape=(12))
@@ -64,13 +64,13 @@ class StressBox(csdl.Model):
     def define(self):
         name = self.parameters['name']
 
-        A = self.declare_variable(name+'A')
-        J = self.declare_variable(name+'J')
-        Iy = self.declare_variable(name+'Iy') # height axis
-        Iz = self.declare_variable(name+'Iz') # width axis
+        A = self.declare_variable(name+'_A')
+        J = self.declare_variable(name+'_J')
+        Iy = self.declare_variable(name+'_Iy') # height axis
+        Iz = self.declare_variable(name+'_Iz') # width axis
 
-        w = self.declare_variable(name+'width')
-        h = self.declare_variable(name+'height')
+        w = self.declare_variable(name+'_w')
+        h = self.declare_variable(name+'_h')
 
         # get the local loads:
         local_loads = self.declare_variable(name+'local_loads',shape=(12))

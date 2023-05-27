@@ -4,9 +4,10 @@ import python_csdl_backend
 from massprop import MassProp
 from model import Model
 from stress import StressTube, StressBox
+from lsdo_modules.module_csdl.module_csdl import ModuleCSDL
 
 
-class Aframe(csdl.Model):
+class Aframe(ModuleCSDL):
 
     def initialize(self):
         self.parameters.declare('beams', default={})
@@ -36,18 +37,18 @@ class Aframe(csdl.Model):
         J = (w*h*(h**2 + w**2)/12) - (w_i*h_i*(h_i**2 + w_i**2)/12)
         Q = 2*(h/2)*tweb*(h/4) + (w - 2*tweb)*tcap*((h/2) - (tcap/2))
 
-        self.register_output(element_name + 'A', A)
-        self.register_output(element_name + 'Iy', Iy)
-        self.register_output(element_name + 'Iz', Iz)
-        self.register_output(element_name + 'J', J)
-        self.register_output(element_name + 'Q', Q)
+        self.register_output(element_name + '_A', A)
+        self.register_output(element_name + '_Iy', Iy)
+        self.register_output(element_name + '_Iz', Iz)
+        self.register_output(element_name + '_J', J)
+        self.register_output(element_name + '_Q', Q)
 
 
     def local_stiffness(self, element_name, E, G, node_dict, node_index, dim, i):
-        A = self.declare_variable(element_name+'A')
-        Iy = self.declare_variable(element_name+'Iy')
-        Iz = self.declare_variable(element_name+'Iz')
-        J = self.declare_variable(element_name+'J')
+        A = self.declare_variable(element_name + '_A')
+        Iy = self.declare_variable(element_name + '_Iy')
+        Iz = self.declare_variable(element_name + '_Iz')
+        J = self.declare_variable(element_name + '_J')
 
         node_a = self.declare_variable(element_name + 'node_a', shape=(3))
         node_b = self.declare_variable(element_name + 'node_b', shape=(3))
@@ -187,16 +188,17 @@ class Aframe(csdl.Model):
         return Fi
 
 
-    def add_beam(self, name, nodes, cs, e, g, rho, node_dict, node_index, dim):
+    def add_beam(self, beam_name, nodes, cs, e, g, rho, node_dict, node_index, dim):
         n = len(nodes)
 
         default_val = np.zeros((n, 3))
         default_val[:,1] = np.linspace(0,n,n)
-        mesh = self.declare_variable(name + '_mesh', shape=(n,3), val=default_val)
+        # mesh = self.declare_variable(name + '_mesh', shape=(n,3), val=default_val)
+        mesh = self.register_module_input(beam_name + '_mesh', shape=(n,3), promotes=True, val=default_val)
         
         # iterate over each element:
         for i in range(n - 1):
-            element_name = name + '_element_' + str(i)
+            element_name = beam_name + '_element_' + str(i)
             node_a = csdl.reshape(mesh[i, :], (3))
             node_b = csdl.reshape(mesh[i + 1, :], (3))
             self.register_output(element_name + 'node_a', node_a)
@@ -204,27 +206,33 @@ class Aframe(csdl.Model):
 
 
         if cs == 'tube':
-            t = self.declare_variable(name + '_t', shape=(n-1))
-            r = self.declare_variable(name + '_r', shape=(n-1))
+            # t = self.declare_variable(beam_name + '_t', shape=(n-1), val=0.001)
+            # r = self.declare_variable(beam_name + '_r', shape=(n-1), val=0.1)
+            t = self.register_module_input(beam_name + '_t', shape=(n-1), val=0.001)
+            r = self.register_module_input(beam_name + '_r', shape=(n-1), val=0.1)
 
             for i in range(n - 1):
-                element_name = name + '_element_' + str(i)
+                element_name = beam_name + '_element_' + str(i)
                 self.tube(element_name=element_name, t=t[i], r=r[i])
 
 
         elif cs == 'box':
-            w = self.declare_variable(name + '_w', shape=(n-1))
-            h = self.declare_variable(name + '_h', shape=(n-1))
-            tweb = self.declare_variable(name + '_tweb', shape=(n-1))
-            tcap = self.declare_variable(name + '_tcap', shape=(n-1))
+            # w = self.declare_variable(beam_name + '_w', shape=(n-1))
+            # h = self.declare_variable(beam_name + '_h', shape=(n-1))
+            w = self.register_module_input(beam_name + '_w', shape=(n - 1), promotes=True)
+            h = self.register_module_input(beam_name + '_h', shape=(n - 1), promotes=True)
+            # tweb = self.declare_variable(beam_name + '_tweb', shape=(n-1))
+            # tcap = self.declare_variable(beam_name + '_tcap', shape=(n-1))
+            tweb = self.register_module_input(beam_name + '_tweb', shape=(n - 1))
+            tcap = self.register_module_input(beam_name + '_tcap', shape=(n - 1))
 
             for i in range(n - 1):
-                element_name = name + '_element_' + str(i)
+                element_name = beam_name + '_element_' + str(i)
                 self.box(element_name=element_name, w=w[i], h=h[i], tweb=tweb[i], tcap=tcap[i])
 
         # calculate the stiffness matrix for each element:
         for i in range(n - 1):
-            element_name = name + '_element_' + str(i)
+            element_name = beam_name + '_element_' + str(i)
 
             self.local_stiffness(element_name=element_name, 
                                  E=e, 
@@ -278,7 +286,7 @@ class Aframe(csdl.Model):
 
 
         for beam_name in beams:
-            self.add_beam(name=beam_name, 
+            self.add_beam(beam_name=beam_name, 
                           nodes=beams[beam_name]['nodes'], 
                           cs=beams[beam_name]['cs'], 
                           e=beams[beam_name]['E'],
