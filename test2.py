@@ -41,7 +41,7 @@ class Aframe(csdl.Model):
         self.register_output(element_name + 'Q', Q)
 
 
-    def local_stiffness(self, element_name, E, G, node_dict):
+    def local_stiffness(self, element_name, E, G, node_dict, node_index, dim, i):
         A = self.declare_variable(element_name+'A')
         Iy = self.declare_variable(element_name+'Iy')
         Iz = self.declare_variable(element_name+'Iz')
@@ -103,7 +103,7 @@ class Aframe(csdl.Model):
         ll, mm, nn = cp[0], cp[1], cp[2]
         D = (ll**2 + mm**2)**0.5
 
-        block = self.create_output(element_name+'block',shape=(3,3),val=0)
+        block = self.create_output(element_name + 'block',shape=(3,3),val=0)
         block[0,0] = csdl.reshape(ll, (1,1))
         block[0,1] = csdl.reshape(mm, (1,1))
         block[0,2] = csdl.reshape(nn, (1,1))
@@ -113,7 +113,7 @@ class Aframe(csdl.Model):
         block[2,1] = csdl.reshape(-mm*nn/D, (1,1))
         block[2,2] = csdl.reshape(D, (1,1))
 
-        T = self.create_output(element_name+'T',shape=(12,12),val=0)
+        T = self.create_output(element_name + 'T',shape=(12,12),val=0)
         T[0:3,0:3] = 1*block
         T[3:6,3:6] = 1*block
         T[6:9,6:9] = 1*block
@@ -121,10 +121,45 @@ class Aframe(csdl.Model):
 
         tkt = csdl.matmat(csdl.transpose(T), csdl.matmat(kp, T))
 
-        return tkt
+        # expand the transformed stiffness matrix to the global dimensions:
+        k = self.create_output(element_name + 'k',shape=(dim,dim),val=0)
+
+        # parse tkt:
+        k11 = tkt[0:6,0:6] # upper left
+        k12 = tkt[0:6,6:12] # upper right
+        k21 = tkt[6:12,0:6] # lower left
+        k22 = tkt[6:12,6:12] # lower right
+
+        # assign the four block matrices to their respective positions in k:
+        node_a_index = node_index[node_dict[i]]
+        node_b_index = node_index[node_dict[i + 1]]
+
+        row_i = node_a_index*6
+        row_f = node_a_index*6 + 6
+        col_i = node_a_index*6
+        col_f = node_a_index*6 + 6
+        k[row_i:row_f, col_i:col_f] = k11
+
+        row_i = node_a_index*6
+        row_f = node_a_index*6 + 6
+        col_i = node_b_index*6
+        col_f = node_b_index*6 + 6
+        k[row_i:row_f, col_i:col_f] = k12
+
+        row_i = node_b_index*6
+        row_f = node_b_index*6 + 6
+        col_i = node_a_index*6
+        col_f = node_a_index*6 + 6
+        k[row_i:row_f, col_i:col_f] = k21
+
+        row_i = node_b_index*6
+        row_f = node_b_index*6 + 6
+        col_i = node_b_index*6
+        col_f = node_b_index*6 + 6
+        k[row_i:row_f, col_i:col_f] = k22
 
 
-    def add_beam(self, name, nodes, cs, e, g, rho, node_dict):
+    def add_beam(self, name, nodes, cs, e, g, rho, node_dict, node_index, dim):
         n = len(nodes)
 
         default_val = np.zeros((n, 3))
@@ -163,7 +198,13 @@ class Aframe(csdl.Model):
         for i in range(n - 1):
             element_name = name + '_element_' + str(i)
 
-            self.local_stiffness(element_name=element_name, E=e, G=g, node_dict=node_dict)
+            self.local_stiffness(element_name=element_name, 
+                                 E=e, 
+                                 G=g, 
+                                 node_dict=node_dict, 
+                                 node_index=node_index, 
+                                 dim=dim,
+                                 i=i)
 
 
 
@@ -185,30 +226,80 @@ class Aframe(csdl.Model):
         for joint_name in joints:
             joint_beam_list = joints[joint_name]['beams']
             joint_node_list = joints[joint_name]['nodes']
-
             joint_node_a = node_dict[joint_beam_list[0]][joint_node_list[0]]
             
             for i, beam_name in enumerate(joint_beam_list):
-                if i != 0:
-                    node_dict[beam_name][joint_node_list[i]] = joint_node_a
+                if i != 0: node_dict[beam_name][joint_node_list[i]] = joint_node_a
 
 
 
         node_set = set(node_dict[beam_name][i] for beam_name in beams for i in range(len(beams[beam_name]['nodes'])))
         num_unique_nodes = len(node_set)
         dim = num_unique_nodes*6
+        # create a dictionary that contains the nodes and the node index in the global system:
+        node_index = {list(node_set)[i]: i for i in range(num_unique_nodes)}
         # print(node_set)
+        # print(node_dict)
+        # print(node_index)
 
 
 
-        for name in beams:
-            self.add_beam(name=name, 
-                          nodes=beams[name]['nodes'], 
-                          cs=beams[name]['cs'], 
-                          e=beams[name]['E'],
-                          g=beams[name]['G'],
-                          rho=beams[name]['rho'],
-                          node_dict=node_dict)
+        # create a list of element names:
+        elements = []
+        num_elements = 0
+        for beam_name in beams:
+            n = len(beams[beam_name]['nodes'])
+            num_elements += n - 1
+            for i in range(n - 1): elements.append(beam_name + '_element_' + str(i))
+
+
+
+        
+        for beam_name in beams:
+            self.add_beam(name=beam_name, 
+                          nodes=beams[beam_name]['nodes'], 
+                          cs=beams[beam_name]['cs'], 
+                          e=beams[beam_name]['E'],
+                          g=beams[beam_name]['G'],
+                          rho=beams[beam_name]['rho'],
+                          node_dict=node_dict[beam_name],
+                          node_index=node_index,
+                          dim=dim)
+
+
+        # compute the global stiffness matrix:
+        helper = self.create_output('helper', shape=(num_elements,dim,dim), val=0)
+        for i, element_name in enumerate(elements):
+            k = self.declare_variable(element_name + 'k', shape=(dim,dim))
+            helper[i,:,:] = csdl.reshape(k, (1,dim,dim))
+
+        sum_k = csdl.sum(helper, axes=(0, ))
+
+        b_index_list = []
+        for b_name in bounds:
+            beam_name = bounds[b_name]['beam']
+            fpos = bounds[b_name]['node']
+            fdim = bounds[b_name]['fdim']
+            b_node_index = node_index[node_dict[beam_name][fpos]]
+
+            # add the constrained dof index to the b_index_list:
+            for i, fdim in enumerate(fdim):
+                if fdim == 1: b_index_list.append(b_node_index*6 + i)
+
+
+
+        mask = self.create_output('mask',shape=(dim,dim),val=np.eye(dim))
+        mask_eye = self.create_output('mask_eye',shape=(dim,dim),val=0)
+        zero = self.create_input('zero',shape=(1,1),val=0)
+        one = self.create_input('one',shape=(1,1),val=1)
+        [(mask.__setitem__((i,i),1*zero), mask_eye.__setitem__((i,i),1*one)) for i in range(dim) if i in b_index_list]
+
+        # modify the global stiffness matrix with boundary conditions:
+        # first remove the row/column with a boundary condition, then add a 1:
+        K = csdl.matmat(csdl.matmat(mask, sum_k), mask) + mask_eye
+        self.register_output('K', K)
+
+
 
 
 
@@ -222,6 +313,7 @@ beams, bounds, joints = {}, {}, {}
 beams['wing'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
 beams['boom'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
 joints['joint'] = {'beams': ['wing', 'boom'],'nodes': [4, 4]}
+bounds['root'] = {'beam': 'wing','node': 0,'fdim': [1,1,1,1,1,1]}
 
 sim = python_csdl_backend.Simulator(Aframe(beams=beams, joints=joints))
 sim.run()
