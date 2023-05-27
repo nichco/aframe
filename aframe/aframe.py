@@ -253,7 +253,6 @@ class Aframe(csdl.Model):
             joint_beam_list = joints[joint_name]['beams']
             joint_node_list = joints[joint_name]['nodes']
             joint_node_a = node_dict[joint_beam_list[0]][joint_node_list[0]]
-            
             for i, beam_name in enumerate(joint_beam_list):
                 if i != 0: node_dict[beam_name][joint_node_list[i]] = joint_node_a
 
@@ -351,6 +350,50 @@ class Aframe(csdl.Model):
 
 
 
+        # recover the local elemental forces/moments:
+        for beam_name in beams:
+            for i in range(n - 1):
+                element_name = beam_name + '_element_' + str(i)
+                node_a_id, node_b_id = node_index[node_dict[beam_name][i]], node_index[node_dict[beam_name][i + 1]]
+                # get the nodal displacements for the current element:
+                disp_a, disp_b = U[node_a_id*6:node_a_id*6 + 6], U[node_b_id*6:node_b_id*6 + 6]
+                # concatenate the nodal displacements:
+                d = self.create_output(element_name + 'd', shape=(12), val=0)
+                d[0:6], d[6:12] = disp_a, disp_b
+                kp = self.declare_variable(element_name + 'kp',shape=(12,12))
+                T = self.declare_variable(element_name + 'T',shape=(12,12))
+                # element local loads output (required for the stress recovery):
+                self.register_output(element_name + 'local_loads', csdl.matvec(kp,csdl.matvec(T,d)))
+
+
+        # parse the displacements to get the new nodal coordinates:
+        for beam_name in beams:
+            for i in range(n - 1):
+                element_name = beam_name + '_element_' + str(i)
+                node_a_position = self.declare_variable(element_name + 'node_a',shape=(3))
+                node_b_position = self.declare_variable(element_name + 'node_b',shape=(3))
+                a, b =  node_index[node_dict[beam_name][i]], node_index[node_dict[beam_name][i + 1]]
+                # get the nodal displacements for the current element:
+                dn1, dn2 = U[a*6:a*6 + 3], U[b*6:b*6 + 3]
+                self.register_output(element_name + 'node_a_def', node_a_position + dn1)
+                self.register_output(element_name + 'node_b_def', node_b_position + dn2)
+
+
+        # the displacement outputs for each beam:
+        for beam_name in beams:
+            n = len(beams[beam_name]['nodes'])
+            d = self.create_output(beam_name + '_displacement', shape=(n,3), val=0)
+            for i in range(n - 1):
+                element_name = beam_name + '_element_' + str(i)
+                a, b =  node_index[node_dict[beam_name][i]], node_index[node_dict[beam_name][i + 1]]
+                dna = U[a*6:a*6 + 3]
+                dnb = U[b*6:b*6 + 3]
+                d[i,:] = csdl.reshape(dna, (1,3))
+
+            d[n - 1,:] = csdl.reshape(dnb, (1,3))
+
+
+        # perform a stress recovery:
 
 
 
