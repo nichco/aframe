@@ -3,6 +3,7 @@ import csdl
 import python_csdl_backend
 from massprop import MassProp
 from model import Model
+from stress import StressTube, StressBox
 
 
 class Aframe(csdl.Model):
@@ -394,9 +395,34 @@ class Aframe(csdl.Model):
 
 
         # perform a stress recovery:
+        vonmises_stress = self.create_output('vonmises_stress', shape=(len(elements)), val=0)
+        element_index = 0
+        for beam_name in beams:
+            n = len(beams[beam_name]['nodes'])
+
+            if beams[beam_name]['cs'] == 'tube':
+                for i in range(n - 1):
+                    element_name = beam_name + '_element_' + str(i)
+                    self.add(StressTube(name=element_name), name=element_name+'StressTube')
+                    vonmises_stress[element_index] = self.declare_variable(element_name + 's_vm')
+                    element_index += 1
+
+            elif beams[beam_name]['cs'] == 'box':
+                for i in range(n - 1):
+                    element_name = beam_name + '_element_' + str(i)
+                    self.add(StressTube(name=element_name), name=element_name+'StressTube')
+                    vonmises_stress[element_index] = self.declare_variable(element_name + 's_vm')
+                    element_index += 1
 
 
-
+        # compute the maximum stress in the entire system:
+        max_stress = csdl.max(vonmises_stress)
+        self.register_output('max_stress', max_stress)
+        
+        # output dummy forces and moments for CADDEE:
+        zero = self.declare_variable('zero_vec',shape=(3),val=0)
+        self.register_output('F', 1*zero)
+        self.register_output('M', 1*zero)
 
 
 
