@@ -1,8 +1,8 @@
 import numpy as np
 import csdl
 import python_csdl_backend
-from localk import LocalK
-
+from massprop import MassProp
+from model import Model
 
 
 class Aframe(csdl.Model):
@@ -50,9 +50,9 @@ class Aframe(csdl.Model):
         node_a = self.declare_variable(element_name + 'node_a', shape=(3))
         node_b = self.declare_variable(element_name + 'node_b', shape=(3))
 
-        L = self.register_output(element_name + '_L', csdl.pnorm(node_b - node_a, pnorm_type=2))
+        L = self.register_output(element_name + 'L', csdl.pnorm(node_b - node_a, pnorm_type=2))
 
-        kp = self.create_output(element_name+'kp',shape=(12,12),val=0)
+        kp = self.create_output(element_name + 'kp',shape=(12,12),val=0)
         # the upper left block
         kp[0,0] = csdl.reshape(A*E/L, (1,1))
         kp[1,1] = csdl.reshape(12*E*Iz/L**3, (1,1))
@@ -159,6 +159,32 @@ class Aframe(csdl.Model):
         k[row_i:row_f, col_i:col_f] = k22
 
 
+    def global_loads(self, b_index_list, num_unique_nodes, node_dict, beams, node_index):
+
+        nodal_loads = self.create_output('nodal_loads', shape=(len(beams), num_unique_nodes, 6), val=0)
+        for i, beam_name in enumerate(beams):
+            n = len(beams[beam_name]['nodes'])
+            
+            forces = self.declare_variable(beam_name + '_forces', shape=(n,3), val=0)
+            moments = self.declare_variable(beam_name + '_moments', shape=(n,3), val=0)
+
+            # concatenate the forces and moments:
+            loads = self.create_output(f'{beam_name}_loads', shape=(n,6), val=0)
+            loads[:,0:3], loads[:, 3:6] = 1*forces, 1*moments
+
+            for j, bnode in enumerate(node_dict[beam_name]):
+                for k in range(6):
+                    if (node_index[bnode]*6 + k) not in b_index_list:
+                        nodal_loads[i,node_index[bnode],k] = csdl.reshape(loads[j,k], (1,1,1))
+
+
+        total_loads = csdl.sum(nodal_loads, axes=(0,))
+
+        # flatten the total loads matrix to a vector:
+        Fi = self.register_output('Fi', csdl.reshape(total_loads, new_shape=(6*num_unique_nodes)))
+        return Fi
+
+
     def add_beam(self, name, nodes, cs, e, g, rho, node_dict, node_index, dim):
         n = len(nodes)
 
@@ -246,11 +272,14 @@ class Aframe(csdl.Model):
 
         # create a list of element names:
         elements = []
+        element_density_list = []
         num_elements = 0
         for beam_name in beams:
             n = len(beams[beam_name]['nodes'])
             num_elements += n - 1
-            for i in range(n - 1): elements.append(beam_name + '_element_' + str(i))
+            for i in range(n - 1): 
+                elements.append(beam_name + '_element_' + str(i))
+                element_density_list.append(beams[beam_name]['rho'])
 
 
 
@@ -296,8 +325,27 @@ class Aframe(csdl.Model):
 
         # modify the global stiffness matrix with boundary conditions:
         # first remove the row/column with a boundary condition, then add a 1:
-        K = csdl.matmat(csdl.matmat(mask, sum_k), mask) + mask_eye
-        self.register_output('K', K)
+        K = self.register_output('K', csdl.matmat(csdl.matmat(mask, sum_k), mask) + mask_eye)
+
+
+
+        # compute the mass properties:
+        self.add(MassProp(elements=elements, element_density_list=element_density_list), name='MassProp')
+
+
+        Fi = self.global_loads(b_index_list=b_index_list,
+                              num_unique_nodes=num_unique_nodes,
+                              node_dict=node_dict,
+                              beams=beams,
+                              node_index=node_index)
+        
+
+        # solve the linear system
+        solve_res = self.create_implicit_operation(Model(dim=dim))
+        solve_res.declare_state(state='U', residual='R')
+        solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-6,)
+        solve_res.linear_solver = csdl.ScipyKrylov()
+        U = solve_res(K, Fi)
 
 
 
@@ -309,13 +357,16 @@ class Aframe(csdl.Model):
 
 
 
-beams, bounds, joints = {}, {}, {}
-beams['wing'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
-beams['boom'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
-joints['joint'] = {'beams': ['wing', 'boom'],'nodes': [4, 4]}
-bounds['root'] = {'beam': 'wing','node': 0,'fdim': [1,1,1,1,1,1]}
 
-sim = python_csdl_backend.Simulator(Aframe(beams=beams, joints=joints))
-sim.run()
+if __name__ == '__main__':
 
-print(sim['wing_element_1_A'])
+    beams, bounds, joints = {}, {}, {}
+    beams['wing'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
+    beams['boom'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
+    joints['joint'] = {'beams': ['wing', 'boom'],'nodes': [4, 4]}
+    bounds['root'] = {'beam': 'wing','node': 0,'fdim': [1,1,1,1,1,1]}
+
+    sim = python_csdl_backend.Simulator(Aframe(beams=beams, joints=joints))
+    sim.run()
+
+    print(sim['wing_element_1_A'])
