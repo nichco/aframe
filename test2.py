@@ -12,21 +12,20 @@ class Aframe(csdl.Model):
         self.parameters.declare('joints', default={})
 
 
-    def tube(self, name, t, r):
+    def tube(self, element_name, t, r):
         r1, r2 = r - t, r
         A = np.pi * (r2**2 - r1**2)
         Iy = np.pi * (r2**4 - r1**4) / 4.0
         Iz = np.pi * (r2**4 - r1**4) / 4.0
         J = np.pi * (r2**4 - r1**4) / 2.0
 
-        self.register_output(name + '_A', A)
-        self.register_output(name + '_Iy', Iy)
-        self.register_output(name + '_Iz', Iz)
-        self.register_output(name + '_J', J)
+        self.register_output(element_name + '_A', A)
+        self.register_output(element_name + '_Iy', Iy)
+        self.register_output(element_name + '_Iz', Iz)
+        self.register_output(element_name + '_J', J)
 
 
-
-    def box(self, name, w, h, tweb, tcap):
+    def box(self, element_name, w, h, tweb, tcap):
         w_i = w - 2*tweb
         h_i = h - 2*tcap
         A = (w*h) - (w_i*h_i)
@@ -35,22 +34,102 @@ class Aframe(csdl.Model):
         J = (w*h*(h**2 + w**2)/12) - (w_i*h_i*(h_i**2 + w_i**2)/12)
         Q = 2*(h/2)*tweb*(h/4) + (w - 2*tweb)*tcap*((h/2) - (tcap/2))
 
-        self.register_output(name+'A', A)
-        self.register_output(name+'Iy', Iy)
-        self.register_output(name+'Iz', Iz)
-        self.register_output(name+'J', J)
-        self.register_output(name+'Q', Q)
+        self.register_output(element_name + 'A', A)
+        self.register_output(element_name + 'Iy', Iy)
+        self.register_output(element_name + 'Iz', Iz)
+        self.register_output(element_name + 'J', J)
+        self.register_output(element_name + 'Q', Q)
 
 
+    def local_stiffness(self, element_name, E, G, node_dict):
+        A = self.declare_variable(element_name+'A')
+        Iy = self.declare_variable(element_name+'Iy')
+        Iz = self.declare_variable(element_name+'Iz')
+        J = self.declare_variable(element_name+'J')
+
+        node_a = self.declare_variable(element_name + 'node_a', shape=(3))
+        node_b = self.declare_variable(element_name + 'node_b', shape=(3))
+
+        L = self.register_output(element_name + '_L', csdl.pnorm(node_b - node_a, pnorm_type=2))
+
+        kp = self.create_output(element_name+'kp',shape=(12,12),val=0)
+        # the upper left block
+        kp[0,0] = csdl.reshape(A*E/L, (1,1))
+        kp[1,1] = csdl.reshape(12*E*Iz/L**3, (1,1))
+        kp[1,5] = csdl.reshape(6*E*Iz/L**2, (1,1))
+        kp[5,1] = csdl.reshape(6*E*Iz/L**2, (1,1))
+        kp[2,2] = csdl.reshape(12*E*Iy/L**3, (1,1))
+        kp[2,4] = csdl.reshape(-6*E*Iy/L**2, (1,1))
+        kp[4,2] = csdl.reshape(-6*E*Iy/L**2, (1,1))
+        kp[3,3] = csdl.reshape(G*J/L, (1,1))
+        kp[4,4] = csdl.reshape(4*E*Iy/L, (1,1))
+        kp[5,5] = csdl.reshape(4*E*Iz/L, (1,1))
+        # the upper right block
+        kp[0,6] = csdl.reshape(-A*E/L, (1,1))
+        kp[1,7] = csdl.reshape(-12*E*Iz/L**3, (1,1))
+        kp[1,11] = csdl.reshape(6*E*Iz/L**2, (1,1))
+        kp[2,8] = csdl.reshape(-12*E*Iy/L**3, (1,1))
+        kp[2,10] = csdl.reshape(-6*E*Iy/L**2, (1,1))
+        kp[3,9] = csdl.reshape(-G*J/L, (1,1))
+        kp[4,8] = csdl.reshape(6*E*Iy/L**2, (1,1))
+        kp[4,10] = csdl.reshape(2*E*Iy/L, (1,1))
+        kp[5,7] = csdl.reshape(-6*E*Iz/L**2, (1,1))
+        kp[5,11] = csdl.reshape(2*E*Iz/L, (1,1))
+        # the lower left block
+        kp[6,0] = csdl.reshape(-A*E/L, (1,1))
+        kp[7,1] = csdl.reshape(-12*E*Iz/L**3, (1,1))
+        kp[7,5] = csdl.reshape(-6*E*Iz/L**2, (1,1))
+        kp[8,2] = csdl.reshape(-12*E*Iy/L**3, (1,1))
+        kp[8,4] = csdl.reshape(6*E*Iy/L**2, (1,1))
+        kp[9,3] = csdl.reshape(-G*J/L, (1,1))
+        kp[10,2] = csdl.reshape(-6*E*Iy/L**2, (1,1))
+        kp[10,4] = csdl.reshape(2*E*Iy/L, (1,1))
+        kp[11,1] = csdl.reshape(6*E*Iz/L**2, (1,1))
+        kp[11,5] = csdl.reshape(2*E*Iz/L, (1,1))
+        # the lower right block
+        kp[6,6] = csdl.reshape(A*E/L, (1,1))
+        kp[7,7] = csdl.reshape(12*E*Iz/L**3, (1,1))
+        kp[7,11] = csdl.reshape(-6*E*Iz/L**2, (1,1))
+        kp[11,7] = csdl.reshape(-6*E*Iz/L**2, (1,1))
+        kp[8,8] = csdl.reshape(12*E*Iy/L**3, (1,1))
+        kp[8,10] = csdl.reshape(6*E*Iy/L**2, (1,1))
+        kp[10,8] = csdl.reshape(6*E*Iy/L**2, (1,1))
+        kp[9,9] = csdl.reshape(G*J/L, (1,1))
+        kp[10,10] = csdl.reshape(4*E*Iy/L, (1,1))
+        kp[11,11] = csdl.reshape(4*E*Iz/L, (1,1))
+
+        # transform the local stiffness to global coordinates:
+        cp = (node_b - node_a)/csdl.expand(L, (3))
+        ll, mm, nn = cp[0], cp[1], cp[2]
+        D = (ll**2 + mm**2)**0.5
+
+        block = self.create_output(element_name+'block',shape=(3,3),val=0)
+        block[0,0] = csdl.reshape(ll, (1,1))
+        block[0,1] = csdl.reshape(mm, (1,1))
+        block[0,2] = csdl.reshape(nn, (1,1))
+        block[1,0] = csdl.reshape(-mm/D, (1,1))
+        block[1,1] = csdl.reshape(ll/D, (1,1))
+        block[2,0] = csdl.reshape(-ll*nn/D, (1,1))
+        block[2,1] = csdl.reshape(-mm*nn/D, (1,1))
+        block[2,2] = csdl.reshape(D, (1,1))
+
+        T = self.create_output(element_name+'T',shape=(12,12),val=0)
+        T[0:3,0:3] = 1*block
+        T[3:6,3:6] = 1*block
+        T[6:9,6:9] = 1*block
+        T[9:12,9:12] = 1*block
+
+        tkt = csdl.matmat(csdl.transpose(T), csdl.matmat(kp, T))
+
+        return tkt
 
 
-
-    def add_beam(self, name, nodes, cs, e, g, rho):
+    def add_beam(self, name, nodes, cs, e, g, rho, node_dict):
         n = len(nodes)
 
-        mesh = self.declare_variable(name + '_mesh', shape=(n,3))
-        #self.create_input(name + '_E', e)
-        #self.create_input(name + '_G', g)
+        default_val = np.zeros((n, 3))
+        default_val[:,1] = np.linspace(0,n,n)
+        mesh = self.declare_variable(name + '_mesh', shape=(n,3), val=default_val)
         
         # iterate over each element:
         for i in range(n - 1):
@@ -67,7 +146,7 @@ class Aframe(csdl.Model):
 
             for i in range(n - 1):
                 element_name = name + '_element_' + str(i)
-                self.tube(name=element_name, t=t[i], r=r[i])
+                self.tube(element_name=element_name, t=t[i], r=r[i])
 
 
         elif cs == 'box':
@@ -78,15 +157,13 @@ class Aframe(csdl.Model):
 
             for i in range(n - 1):
                 element_name = name + '_element_' + str(i)
-                self.box(name=element_name, w=w[i], h=h[i], tweb=tweb[i], tcap=tcap[i])
+                self.box(element_name=element_name, w=w[i], h=h[i], tweb=tweb[i], tcap=tcap[i])
 
         # calculate the stiffness matrix for each element:
         for i in range(n - 1):
             element_name = name + '_element_' + str(i)
 
-            E, G = e, g
-
-
+            self.local_stiffness(element_name=element_name, E=e, G=g, node_dict=node_dict)
 
 
 
@@ -96,6 +173,33 @@ class Aframe(csdl.Model):
         beams = self.parameters['beams']
         joints = self.parameters['joints']
 
+        # automated beam node assignment:
+        node_dict = {}
+        # start by populating the nodes dictionary as if there aren't any joints:
+        index = 0
+        for beam_name in beams:
+            node_dict[beam_name] = np.arange(index, index + len(beams[beam_name]['nodes']))
+            index += len(beams[beam_name]['nodes'])
+
+        # assign nodal indices in the global system:
+        for joint_name in joints:
+            joint_beam_list = joints[joint_name]['beams']
+            joint_node_list = joints[joint_name]['nodes']
+
+            joint_node_a = node_dict[joint_beam_list[0]][joint_node_list[0]]
+            
+            for i, beam_name in enumerate(joint_beam_list):
+                if i != 0:
+                    node_dict[beam_name][joint_node_list[i]] = joint_node_a
+
+
+
+        node_set = set(node_dict[beam_name][i] for beam_name in beams for i in range(len(beams[beam_name]['nodes'])))
+        num_unique_nodes = len(node_set)
+        dim = num_unique_nodes*6
+        # print(node_set)
+
+
 
         for name in beams:
             self.add_beam(name=name, 
@@ -103,7 +207,8 @@ class Aframe(csdl.Model):
                           cs=beams[name]['cs'], 
                           e=beams[name]['E'],
                           g=beams[name]['G'],
-                          rho=beams[name]['rho'])
+                          rho=beams[name]['rho'],
+                          node_dict=node_dict)
 
 
 
@@ -116,7 +221,7 @@ class Aframe(csdl.Model):
 beams, bounds, joints = {}, {}, {}
 beams['wing'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
 beams['boom'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
-joints['joint'] = {'a': 4,'b': 4}
+joints['joint'] = {'beams': ['wing', 'boom'],'nodes': [4, 4]}
 
 sim = python_csdl_backend.Simulator(Aframe(beams=beams, joints=joints))
 sim.run()
