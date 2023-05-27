@@ -190,7 +190,6 @@ class LinearBeamCSDL(ModuleCSDL):
             if cs == 'box':
                 xweb = self.register_module_input(beam_name+'t_web_in',shape=(n-1), computed_upstream=False)
                 xcap = self.register_module_input(beam_name+'t_cap_in',shape=(n-1), computed_upstream=False)
-                self.print_var(xweb)
                 self.register_output(beam_name+'_t_web',1*xweb)
                 self.register_output(beam_name+'_t_cap',1*xcap)
                 

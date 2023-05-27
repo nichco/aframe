@@ -19,7 +19,7 @@ class MassProp(csdl.Model):
         for i, element_name in enumerate(elements):
             rho = element_density_list[i]
 
-            A = self.declare_variable(element_name + 'A')
+            A = self.declare_variable(element_name + '_A')
             L = self.declare_variable(element_name + 'L')
 
             # compute the element volume:
