@@ -11,6 +11,7 @@ class Aframe(csdl.Model):
     def initialize(self):
         self.parameters.declare('beams', default={})
         self.parameters.declare('joints', default={})
+        self.parameters.declare('bounds', default={})
 
 
     def tube(self, element_name, t, r):
@@ -237,6 +238,7 @@ class Aframe(csdl.Model):
     def define(self):
         beams = self.parameters['beams']
         joints = self.parameters['joints']
+        bounds = self.parameters['bounds']
 
         # automated beam node assignment:
         node_dict = {}
@@ -259,17 +261,12 @@ class Aframe(csdl.Model):
         node_set = set(node_dict[beam_name][i] for beam_name in beams for i in range(len(beams[beam_name]['nodes'])))
         num_unique_nodes = len(node_set)
         dim = num_unique_nodes*6
-        # create a dictionary that contains the nodes and the node index in the global system:
         node_index = {list(node_set)[i]: i for i in range(num_unique_nodes)}
-        # print(node_set)
-        # print(node_dict)
-        # print(node_index)
 
 
 
         # create a list of element names:
-        elements = []
-        element_density_list = []
+        elements, element_density_list = [], []
         num_elements = 0
         for beam_name in beams:
             n = len(beams[beam_name]['nodes'])
@@ -280,7 +277,6 @@ class Aframe(csdl.Model):
 
 
 
-        
         for beam_name in beams:
             self.add_beam(name=beam_name, 
                           nodes=beams[beam_name]['nodes'], 
@@ -296,28 +292,24 @@ class Aframe(csdl.Model):
         # compute the global stiffness matrix:
         helper = self.create_output('helper', shape=(num_elements,dim,dim), val=0)
         for i, element_name in enumerate(elements):
-            k = self.declare_variable(element_name + 'k', shape=(dim,dim))
-            helper[i,:,:] = csdl.reshape(k, (1,dim,dim))
+            helper[i,:,:] = csdl.reshape(self.declare_variable(element_name + 'k', shape=(dim,dim)), (1,dim,dim))
 
         sum_k = csdl.sum(helper, axes=(0, ))
 
         b_index_list = []
         for b_name in bounds:
-            beam_name = bounds[b_name]['beam']
             fpos = bounds[b_name]['node']
             fdim = bounds[b_name]['fdim']
-            b_node_index = node_index[node_dict[beam_name][fpos]]
-
+            b_node_index = node_index[node_dict[bounds[b_name]['beam']][fpos]]
             # add the constrained dof index to the b_index_list:
             for i, fdim in enumerate(fdim):
                 if fdim == 1: b_index_list.append(b_node_index*6 + i)
 
 
 
-        mask = self.create_output('mask',shape=(dim,dim),val=np.eye(dim))
-        mask_eye = self.create_output('mask_eye',shape=(dim,dim),val=0)
-        zero = self.create_input('zero',shape=(1,1),val=0)
-        one = self.create_input('one',shape=(1,1),val=1)
+        mask = self.create_output('mask', shape=(dim,dim), val=np.eye(dim))
+        mask_eye = self.create_output('mask_eye', shape=(dim,dim), val=0)
+        zero, one = self.create_input('zero', shape=(1,1), val=0), self.create_input('one', shape=(1,1), val=1)
         [(mask.__setitem__((i,i),1*zero), mask_eye.__setitem__((i,i),1*one)) for i in range(dim) if i in b_index_list]
 
         # modify the global stiffness matrix with boundary conditions:
@@ -400,14 +392,14 @@ class Aframe(csdl.Model):
             if beams[beam_name]['cs'] == 'tube':
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)
-                    self.add(StressTube(name=element_name), name=element_name+'StressTube')
+                    self.add(StressTube(name=element_name), name=element_name + 'StressTube')
                     vonmises_stress[element_index] = self.declare_variable(element_name + 's_vm')
                     element_index += 1
 
             elif beams[beam_name]['cs'] == 'box':
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)
-                    self.add(StressTube(name=element_name), name=element_name+'StressTube')
+                    self.add(StressBox(name=element_name), name=element_name + 'StressBox')
                     vonmises_stress[element_index] = self.declare_variable(element_name + 's_vm')
                     element_index += 1
 
@@ -443,7 +435,7 @@ if __name__ == '__main__':
     #joints['joint'] = {'beams': ['wing', 'boom'],'nodes': [4, 4]}
     bounds['root'] = {'beam': 'wing','node': 0,'fdim': [1,1,1,1,1,1]}
 
-    sim = python_csdl_backend.Simulator(Aframe(beams=beams, joints=joints))
+    sim = python_csdl_backend.Simulator(Aframe(beams=beams, joints=joints, bounds=bounds))
 
     f = np.zeros((10,3))
     f[:,2] = 100
