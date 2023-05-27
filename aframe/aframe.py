@@ -234,9 +234,6 @@ class Aframe(csdl.Model):
                                  i=i)
 
 
-
-
-
     def define(self):
         beams = self.parameters['beams']
         joints = self.parameters['joints']
@@ -371,8 +368,8 @@ class Aframe(csdl.Model):
         for beam_name in beams:
             for i in range(n - 1):
                 element_name = beam_name + '_element_' + str(i)
-                node_a_position = self.declare_variable(element_name + 'node_a',shape=(3))
-                node_b_position = self.declare_variable(element_name + 'node_b',shape=(3))
+                node_a_position = self.declare_variable(element_name + 'node_a', shape=(3))
+                node_b_position = self.declare_variable(element_name + 'node_b', shape=(3))
                 a, b =  node_index[node_dict[beam_name][i]], node_index[node_dict[beam_name][i + 1]]
                 # get the nodal displacements for the current element:
                 dn1, dn2 = U[a*6:a*6 + 3], U[b*6:b*6 + 3]
@@ -427,15 +424,60 @@ class Aframe(csdl.Model):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
 
     beams, bounds, joints = {}, {}, {}
     beams['wing'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
-    beams['boom'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
-    joints['joint'] = {'beams': ['wing', 'boom'],'nodes': [4, 4]}
+    #beams['boom'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
+    #joints['joint'] = {'beams': ['wing', 'boom'],'nodes': [4, 4]}
     bounds['root'] = {'beam': 'wing','node': 0,'fdim': [1,1,1,1,1,1]}
 
     sim = python_csdl_backend.Simulator(Aframe(beams=beams, joints=joints))
+
+    f = np.zeros((10,3))
+    f[:,2] = 100
+    sim['wing_forces'] = f
+
     sim.run()
 
     print(sim['wing_element_1_A'])
+
+
+
+    # plotting:
+    import matplotlib.pyplot as plt
+    plt.rcParams.update(plt.rcParamsDefault)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    for beam_name in beams:
+        n = len(beams[beam_name]['nodes'])
+        for i in range(n - 1):
+            element_name = beam_name + '_element_' + str(i)
+            na = sim[element_name+'node_a_def']
+            nb = sim[element_name+'node_b_def']
+
+            x = np.array([na[0], nb[0]])
+            y = np.array([na[1], nb[1]])
+            z = np.array([na[2], nb[2]])
+
+            ax.plot(x,y,z,color='k',label='_nolegend_',linewidth=2)
+            ax.scatter(na[0], na[1], na[2],color='yellow',edgecolors='black',linewidth=1,zorder=10,label='_nolegend_',s=30)
+            ax.scatter(nb[0], nb[1], nb[2],color='yellow',edgecolors='black',linewidth=1,zorder=10,label='_nolegend_',s=30)
+
+
+    ax.set_xlim(-1,1)
+    ax.set_ylim(0,10)
+    ax.set_zlim(-1,1)
+    plt.show()
