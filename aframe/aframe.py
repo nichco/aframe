@@ -439,8 +439,8 @@ if __name__ == '__main__':
 
     beams, bounds, joints = {}, {}, {}
     beams['wing'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
-    #beams['boom'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
-    #joints['joint'] = {'beams': ['wing', 'boom'],'nodes': [4, 4]}
+    beams['boom'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(10))}
+    joints['joint'] = {'beams': ['wing', 'boom'],'nodes': [4, 4]}
     bounds['root'] = {'beam': 'wing','node': 0,'fdim': [1,1,1,1,1,1]}
 
     sim = python_csdl_backend.Simulator(Aframe(beams=beams, joints=joints, bounds=bounds))
@@ -450,8 +450,6 @@ if __name__ == '__main__':
     sim['wing_forces'] = f
 
     sim.run()
-
-    print(sim['wing_element_1_A'])
 
 
 
