@@ -35,7 +35,7 @@ class Run(csdl.Model):
         self.add(Aframe(beams=beams, bounds=bounds, joints=joints), name='Aframe')
 
 
-        self.add_constraint('vonmises_stress', upper=450E6/2, scaler=1E-8)
+        self.add_constraint('stress', upper=450E6/2, scaler=1E-8)
         self.add_design_variable('wing_t', lower=0.001 ,scaler=1000)
         #self.add_design_variable('b1radius',lower=0.1,upper=0.5,scaler=1)
         self.add_objective('mass',scaler=1E-1)
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # optimizer.print_results()
 
 
-    stress = sim['vonmises_stress']
+    stress = sim['stress']
     print(stress)
 
     t = sim['wing_t']

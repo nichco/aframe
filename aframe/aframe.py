@@ -349,8 +349,8 @@ class Aframe(ModuleCSDL):
 
         # recover the local elemental forces/moments:
         for beam_name in beams:
+            n = len(beams[beam_name]['nodes'])
             for i in range(n - 1):
-                #print(i)
                 element_name = beam_name + '_element_' + str(i)
                 node_a_id, node_b_id = node_index[node_dict[beam_name][i]], node_index[node_dict[beam_name][i + 1]]
                 # get the nodal displacements for the current element:
@@ -363,9 +363,13 @@ class Aframe(ModuleCSDL):
                 # element local loads output (required for the stress recovery):
                 local_loads = self.register_output(element_name + 'local_loads', csdl.matvec(kp,csdl.matvec(T,d)))
 
+        
+
+
 
         # parse the displacements to get the new nodal coordinates:
         for beam_name in beams:
+            n = len(beams[beam_name]['nodes'])
             for i in range(n - 1):
                 element_name = beam_name + '_element_' + str(i)
                 node_a_position = self.declare_variable(element_name + 'node_a', shape=(3))
@@ -392,8 +396,9 @@ class Aframe(ModuleCSDL):
 
 
         # perform a stress recovery:
-        vonmises_stress = self.create_output('vonmises_stress', shape=(len(elements)), val=0)
-        element_index = 0
+        stress = self.create_output('stress', shape=(num_unique_nodes), val=0)
+
+        index = 0
         for beam_name in beams:
             n = len(beams[beam_name]['nodes'])
 
@@ -401,19 +406,23 @@ class Aframe(ModuleCSDL):
                 for i in range(n - 1):
                     element_name = beam_name + '_element_' + str(i)
                     self.add(StressTube(name=element_name), name=element_name + 'StressTube')
-                    vonmises_stress[element_index] = self.declare_variable(element_name + 's_vm')
-                    element_index += 1
 
-            elif beams[beam_name]['cs'] == 'box':
-                for i in range(n - 1):
-                    element_name = beam_name + '_element_' + str(i)
-                    self.add(StressBox(name=element_name), name=element_name + 'StressBox')
-                    vonmises_stress[element_index] = self.declare_variable(element_name + 's_vm')
-                    element_index += 1
+                    stress[index] = self.declare_variable(element_name + '_stress_a')
+                    index += 1
+
+                stress[index] = self.declare_variable(element_name + '_stress_b')
+                index += 1
+
+            # elif beams[beam_name]['cs'] == 'box':
+            #     for i in range(n - 1):
+            #         element_name = beam_name + '_element_' + str(i)
+            #         self.add(StressBox(name=element_name), name=element_name + 'StressBox')
+            #         vonmises_stress[element_index] = self.declare_variable(element_name + 's_vm')
+            #         element_index += 1
 
 
         # compute the maximum stress in the entire system:
-        max_stress = csdl.max(vonmises_stress)
+        max_stress = csdl.max(stress)
         self.register_output('max_stress', max_stress)
         
         # output dummy forces and moments for CADDEE:

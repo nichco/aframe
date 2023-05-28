@@ -17,36 +17,39 @@ class StressTube(csdl.Model):
 
         # get the local loads:
         local_loads = self.declare_variable(name+'local_loads',shape=(12))
-        self.print_var(local_loads)
+        loads_a = local_loads[0:6]
+        loads_b = local_loads[6:12]
 
         # compute the normal stress:
-        normal_force = local_loads[0]
-        s_normal = normal_force/A
-
-        #self.print_var(s_normal)
+        s_normal_a = loads_a[0]/A
+        s_normal_b = loads_b[0]/A
 
         # compute the torsional stress:
-        t = local_loads[3]
-        tau = t*r/J
+        tau_a = loads_a[3]*r/J
+        tau_b = loads_b[3]*r/J
 
         # compute the bending stress:
-        bend_moment_1 = local_loads[4]
-        bend_moment_2 = local_loads[5]
+        moment_1_a = loads_a[4]
+        moment_2_a = loads_a[5]
+        moment_1_b = loads_b[4]
+        moment_2_b = loads_b[5]
 
-        net_moment = (bend_moment_1**2 + bend_moment_2**2 + 1E-16)**0.5
+        moment_a = (moment_1_a**2 + moment_2_a**2 + 1E-16)**0.5
+        moment_b = (moment_1_b**2 + moment_2_b**2 + 1E-16)**0.5
 
-        s_bend = net_moment*r/Iy # note: Iy = Iz for a tube
-
-        self.print_var(bend_moment_1)
+        s_bend_a = moment_a*r/Iy # note: Iy = Iz for a tube
+        s_bend_b = moment_b*r/Iy
 
         # sum the bending and normal stresses:
-        s_axial = s_normal + s_bend
+        s_axial_a = s_normal_a + s_bend_a
+        s_axial_b = s_normal_b + s_bend_b
 
         # compute the maximum von-mises stress
-        s_vm = (s_axial**2 + 3*tau**2)**0.5
+        stress_a = (s_axial_a**2 + 3*tau_a**2)**0.5
+        stress_b = (s_axial_b**2 + 3*tau_b**2)**0.5
 
-        self.register_output(name+'s_vm', s_vm)
-        #self.print_var(s_vm)
+        self.register_output(name + '_stress_a', stress_a)
+        self.register_output(name + '_stress_b', stress_b)
 
 
 
