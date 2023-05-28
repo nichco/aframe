@@ -396,8 +396,7 @@ class Aframe(ModuleCSDL):
 
 
         # perform a stress recovery:
-        stress = self.create_output('stress', shape=(num_unique_nodes), val=0)
-
+        stress = self.create_output('stress', shape=(len(elements)), val=0)
         index = 0
         for beam_name in beams:
             n = len(beams[beam_name]['nodes'])
@@ -407,18 +406,16 @@ class Aframe(ModuleCSDL):
                     element_name = beam_name + '_element_' + str(i)
                     self.add(StressTube(name=element_name), name=element_name + 'StressTube')
 
-                    stress[index] = self.declare_variable(element_name + '_stress_a')
+                    stress[index] = self.declare_variable(element_name + '_stress')
                     index += 1
 
-                stress[index] = self.declare_variable(element_name + '_stress_b')
-                index += 1
-
-            # elif beams[beam_name]['cs'] == 'box':
-            #     for i in range(n - 1):
-            #         element_name = beam_name + '_element_' + str(i)
-            #         self.add(StressBox(name=element_name), name=element_name + 'StressBox')
-            #         vonmises_stress[element_index] = self.declare_variable(element_name + 's_vm')
-            #         element_index += 1
+            elif beams[beam_name]['cs'] == 'box':
+                for i in range(n - 1):
+                    element_name = beam_name + '_element_' + str(i)
+                    self.add(StressBox(name=element_name), name=element_name + 'StressBox')
+                    
+                    stress[index] = self.declare_variable(element_name + '_stress')
+                    index += 1
 
 
         # compute the maximum stress in the entire system:
