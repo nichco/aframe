@@ -1,9 +1,9 @@
 import numpy as np
 import csdl
 import python_csdl_backend
-from massprop import MassProp
-from model import Model
-from stress import StressTube, StressBox
+from aframe.massprop import MassProp
+from aframe.model import Model
+from aframe.stress import StressTube, StressBox
 from lsdo_modules.module_csdl.module_csdl import ModuleCSDL
 
 
@@ -340,10 +340,9 @@ class Aframe(ModuleCSDL):
         # solve the linear system
         solve_res = self.create_implicit_operation(Model(dim=dim))
         solve_res.declare_state(state='U', residual='R')
-        solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-6,)
+        solve_res.nonlinear_solver = csdl.NewtonSolver(solve_subsystems=False,maxiter=100,iprint=False,atol=1E-7,)
         solve_res.linear_solver = csdl.ScipyKrylov()
         U = solve_res(K, Fi)
-
 
 
 
@@ -351,17 +350,18 @@ class Aframe(ModuleCSDL):
         # recover the local elemental forces/moments:
         for beam_name in beams:
             for i in range(n - 1):
+                #print(i)
                 element_name = beam_name + '_element_' + str(i)
                 node_a_id, node_b_id = node_index[node_dict[beam_name][i]], node_index[node_dict[beam_name][i + 1]]
                 # get the nodal displacements for the current element:
-                disp_a, disp_b = U[node_a_id*6:node_a_id*6 + 6], U[node_b_id*6:node_b_id*6 + 6]
+                disp_a, disp_b = 1*U[node_a_id*6:node_a_id*6 + 6], 1*U[node_b_id*6:node_b_id*6 + 6]
                 # concatenate the nodal displacements:
                 d = self.create_output(element_name + 'd', shape=(12), val=0)
                 d[0:6], d[6:12] = disp_a, disp_b
                 kp = self.declare_variable(element_name + 'kp',shape=(12,12))
                 T = self.declare_variable(element_name + 'T',shape=(12,12))
                 # element local loads output (required for the stress recovery):
-                self.register_output(element_name + 'local_loads', csdl.matvec(kp,csdl.matvec(T,d)))
+                local_loads = self.register_output(element_name + 'local_loads', csdl.matvec(kp,csdl.matvec(T,d)))
 
 
         # parse the displacements to get the new nodal coordinates:
