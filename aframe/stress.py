@@ -151,5 +151,5 @@ class StressBox(csdl.Model):
         stress_ab[1] = max_stress_b
 
         # self.register_output(name + '_stress', csdl.max(1E-3*stress_ab)/1E-3)
-        self.register_output(name + '_stress', (stress_a + stress_b)/2)
+        self.register_output(name + '_stress', (max_stress_a + max_stress_b)/2)
         
