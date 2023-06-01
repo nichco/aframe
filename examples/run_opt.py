@@ -69,7 +69,6 @@ if __name__ == '__main__':
 
     print(sim['mass'])
 
-    exit()
     # plotting:
     import matplotlib.pyplot as plt
     plt.rcParams.update(plt.rcParamsDefault)
