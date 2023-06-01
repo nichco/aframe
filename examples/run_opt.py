@@ -55,10 +55,11 @@ if __name__ == '__main__':
     sim = python_csdl_backend.Simulator(Run(beams=beams,bounds=bounds,joints=joints))
     sim.run()
 
-    prob = CSDLProblem(problem_name='run_opt', simulator=sim)
-    optimizer = SLSQP(prob, maxiter=1000, ftol=1E-12)
-    optimizer.solve()
-    optimizer.print_results()
+
+    # prob = CSDLProblem(problem_name='run_opt', simulator=sim)
+    # optimizer = SLSQP(prob, maxiter=1000, ftol=1E-12)
+    # optimizer.solve()
+    # optimizer.print_results()
 
 
     stress = sim['stress']
