@@ -395,6 +395,20 @@ class Aframe(ModuleCSDL):
             d[n - 1,:] = csdl.reshape(dnb, (1,3))
 
 
+        # get the rotations:
+        for beam_name in beams:
+            n = len(beams[beam_name]['nodes'])
+            for i in range(n - 1):
+                element_name = beam_name + '_element_' + str(i)
+                node_a = self.declare_variable(element_name + 'node_a', shape=(3))
+                node_b = self.declare_variable(element_name + 'node_b', shape=(3))
+
+                ax, ay, az = node_a[0], node_a[1], node_a[2]
+                bx, by, bz = node_b[0], node_b[1], node_b[2]
+
+                L = self.declare_variable(element_name+'L', shape=(1))
+
+
         # perform a stress recovery:
         stress = self.create_output('stress', shape=(len(elements)), val=0)
         index = 0
