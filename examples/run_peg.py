@@ -12,7 +12,7 @@ import scipy.io as sio
 axis_nodes_dict = sio.loadmat('data/axis_nodes.mat')
 axis_nodes = axis_nodes_dict['axis_nodes']/39.3700787
 # add the initial node:
-axis_nodes = np.concatenate([np.array([[9.86,0,1.042]]),axis_nodes]) # check values
+axis_nodes = np.concatenate([np.array([[9.86,0,1.042]]),axis_nodes])
 airfoil_ribs_points_dict = sio.loadmat('data/ribs_oml_points.mat')
 airfoil_ribs_points = airfoil_ribs_points_dict['airfoil_ribs_points']/39.3700787
 
@@ -35,8 +35,8 @@ w[0] = w[1]
 h[0] = h[1]
 
 loads_dict = sio.loadmat('data/loads_2p5g_n1g_aero_static.mat')
-static_forces = loads_dict['forces']#*4.44822162
-static_moments = loads_dict['moments']#*0.11298482933333
+static_forces = loads_dict['forces']
+static_moments = loads_dict['moments']
 
 forces, moments = np.zeros((len(axis_nodes),3)), np.zeros((len(axis_nodes),3))
 for i in range(len(axis_nodes) - 2):
