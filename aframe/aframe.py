@@ -399,6 +399,7 @@ class Aframe(ModuleCSDL):
         for beam_name in beams:
             n = len(beams[beam_name]['nodes'])
 
+            # define the axis-wise unit vectors:
             ex = self.create_input('ex', shape=(3), val=[1,0,0])
             ey = self.create_input('ey', shape=(3), val=[0,1,0])
             ez = self.create_input('ez', shape=(3), val=[0,0,1])
@@ -409,10 +410,11 @@ class Aframe(ModuleCSDL):
                 node_a = self.declare_variable(element_name + 'node_a_def', shape=(3))
                 node_b = self.declare_variable(element_name + 'node_b_def', shape=(3))
                 v = node_b - node_a
+                mag = csdl.pnorm(v)
 
-                r[i,0] = csdl.reshape(csdl.arccos(csdl.dot(v, ex)/csdl.pnorm(v)), (1,1))
-                r[i,1] = csdl.reshape(csdl.arccos(csdl.dot(v, ey)/csdl.pnorm(v)), (1,1))
-                r[i,2] = csdl.reshape(csdl.arccos(csdl.dot(v, ez)/csdl.pnorm(v)), (1,1))
+                r[i,0] = csdl.reshape(csdl.arccos(csdl.dot(v, ex)/mag), (1,1))
+                r[i,1] = csdl.reshape(csdl.arccos(csdl.dot(v, ey)/mag), (1,1))
+                r[i,2] = csdl.reshape(csdl.arccos(csdl.dot(v, ez)/mag), (1,1))
 
 
 
