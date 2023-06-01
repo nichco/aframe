@@ -388,11 +388,10 @@ class Aframe(ModuleCSDL):
             for i in range(n - 1):
                 element_name = beam_name + '_element_' + str(i)
                 a, b =  node_index[node_dict[beam_name][i]], node_index[node_dict[beam_name][i + 1]]
-                dna = U[a*6:a*6 + 3]
-                dnb = U[b*6:b*6 + 3]
+                dna, dnb = U[a*6:a*6 + 3], U[b*6:b*6 + 3]
                 d[i,:] = csdl.reshape(dna, (1,3))
-
             d[n - 1,:] = csdl.reshape(dnb, (1,3))
+
 
 
         # get the rotations:
