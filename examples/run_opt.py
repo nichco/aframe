@@ -71,9 +71,6 @@ if __name__ == '__main__':
     print(sim['mass'])
 
     # plotting:
-    import matplotlib.pyplot as plt
-    plt.rcParams.update(plt.rcParamsDefault)
-
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     for beam_name in beams:
