@@ -229,6 +229,10 @@ class Aframe(ModuleCSDL):
             for i in range(n - 1):
                 element_name = beam_name + '_element_' + str(i)
                 self.box(element_name=element_name, w=w[i], h=h[i], tweb=tweb[i], tcap=tcap[i])
+        
+        else: raise NotImplementedError('Error: cs type for' + beam_name + 'is not implemented')
+
+
 
         # calculate the stiffness matrix for each element:
         for i in range(n - 1):
@@ -247,6 +251,11 @@ class Aframe(ModuleCSDL):
         beams = self.parameters['beams']
         joints = self.parameters['joints']
         bounds = self.parameters['bounds']
+
+
+        if not beams: raise Exception('Error: empty beam dictionary')
+        if not bounds: raise Exception('Error: no boundary conditions specified')
+        
 
         # automated beam node assignment:
         node_dict = {}
