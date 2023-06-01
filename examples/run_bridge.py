@@ -1,8 +1,10 @@
 import numpy as np
 import csdl
 import python_csdl_backend
+from aframe.aframe import Aframe
+from modopt.scipy_library import SLSQP
+from modopt.csdl_library import CSDLProblem
 import matplotlib.pyplot as plt
-from aframe.beamgroup import BeamGroup
 plt.rcParams.update(plt.rcParamsDefault)
 
 
@@ -51,8 +53,6 @@ if __name__ == '__main__':
 
 
     beams['b1'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [0,0,0],'b': [1,0,0]}
-
-    
     beams['b2'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [0,0,0],'b': [0.5,1,0]}
     beams['b3'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [0.5,1,0],'b': [1,0,0]}
     beams['b4'] = {'E': 69E9,'G': 26E9,'rho': 2700,'type': 'tube','n': 5,'a': [0.5,1,0],'b': [1.5,1,0]}
