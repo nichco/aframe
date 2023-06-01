@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 plt.rcParams.update(plt.rcParamsDefault)
 
 
-n = 11
+n = 21
 mesh = np.zeros((n,3))
 mesh[:,1] = np.linspace(-10,10,n)
 
@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     joints, bounds, beams = {}, {}, {}
     beams['wing'] = {'E': 69E9,'G': 26E9,'rho': 2700,'cs': 'tube','nodes': list(range(n))}
-    bounds['root'] = {'beam': 'wing','node': 5,'fdim': [1,1,1,1,1,1]}
+    bounds['root'] = {'beam': 'wing','node': 10,'fdim': [1,1,1,1,1,1]}
 
 
 
