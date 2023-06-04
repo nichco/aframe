@@ -10,37 +10,52 @@ class StressTube(csdl.Model):
     def define(self):
         name = self.parameters['name']
 
-        A = self.declare_variable(name+'A')
-        J = self.declare_variable(name+'J')
-        Iy = self.declare_variable(name+'Iy')
-        r = self.declare_variable(name+'radius')
+        A = self.declare_variable(name+'_A')
+        J = self.declare_variable(name+'_J')
+        Iy = self.declare_variable(name+'_Iy')
+        r = self.declare_variable(name+'_r')
 
         # get the local loads:
         local_loads = self.declare_variable(name+'local_loads',shape=(12))
+        loads_a = local_loads[0:6]
+        loads_b = local_loads[6:12]
+
+        #self.print_var(local_loads)
 
         # compute the normal stress:
-        normal_force = local_loads[0]
-        s_normal = normal_force/A
+        s_normal_a = loads_a[0]/A
+        s_normal_b = loads_b[0]/A
 
         # compute the torsional stress:
-        t = local_loads[3]
-        tau = t*r/J
+        tau_a = loads_a[3]*r/J
+        tau_b = loads_b[3]*r/J
 
         # compute the bending stress:
-        bend_moment_1 = local_loads[4]
-        bend_moment_2 = local_loads[5]
+        moment_1_a = loads_a[4]
+        moment_2_a = loads_a[5]
+        moment_1_b = loads_b[4]
+        moment_2_b = loads_b[5]
 
-        net_moment = (bend_moment_1**2 + bend_moment_2**2 + 10)**0.5
+        moment_a = (moment_1_a**2 + moment_2_a**2 + 1E-16)**0.5
+        moment_b = (moment_1_b**2 + moment_2_b**2 + 1E-16)**0.5
 
-        s_bend = net_moment*r/Iy # note: Iy = Iz for a tube
+        s_bend_a = moment_a*r/Iy # note: Iy = Iz for a tube
+        s_bend_b = moment_b*r/Iy
 
         # sum the bending and normal stresses:
-        s_axial = s_normal + s_bend
+        s_axial_a = s_normal_a + s_bend_a
+        s_axial_b = s_normal_b + s_bend_b
 
         # compute the maximum von-mises stress
-        s_vm = (s_axial**2 + 3*tau**2)**0.5
+        stress_a = (s_axial_a**2 + 3*tau_a**2)**0.5
+        stress_b = (s_axial_b**2 + 3*tau_b**2)**0.5
 
-        self.register_output(name+'s_vm', s_vm)
+        stress_ab = self.create_output(name + 'stress_ab', shape=(2), val=0)
+        stress_ab[0] = stress_a
+        stress_ab[1] = stress_b
+
+        # self.register_output(name + '_stress', csdl.max(1E-3*stress_ab)/1E-3)
+        self.register_output(name + '_stress', (stress_a + stress_b)/2)
 
 
 
@@ -64,16 +79,18 @@ class StressBox(csdl.Model):
     def define(self):
         name = self.parameters['name']
 
-        A = self.declare_variable(name+'A')
-        J = self.declare_variable(name+'J')
-        Iy = self.declare_variable(name+'Iy') # height axis
-        Iz = self.declare_variable(name+'Iz') # width axis
+        A = self.declare_variable(name+'_A')
+        J = self.declare_variable(name+'_J')
+        Iy = self.declare_variable(name+'_Iy') # height axis
+        Iz = self.declare_variable(name+'_Iz') # width axis
 
-        w = self.declare_variable(name+'width')
-        h = self.declare_variable(name+'height')
+        w = self.declare_variable(name+'_w')
+        h = self.declare_variable(name+'_h')
 
         # get the local loads:
         local_loads = self.declare_variable(name+'local_loads',shape=(12))
+        loads_a = local_loads[0:6]
+        loads_b = local_loads[6:12]
 
         # create the point coordinate matrix
         x_coord = self.create_output(name+'x_coord',shape=(5),val=0)
@@ -97,42 +114,42 @@ class StressBox(csdl.Model):
 
 
         # compute the stress at each point:
-        normal_force = local_loads[0]
-        shear_force_w = local_loads[1]
-        shear_force_h = local_loads[2]
-        torque = local_loads[3]
-        bend_moment_1 = local_loads[4] # height bending moment
-        bend_moment_2 = local_loads[5] # width bending moment
+        transverse_shear_stress_a = self.create_output(name + 'shear_stress_a',shape=(5), val=0)
+        transverse_shear_stress_b = self.create_output(name + 'shear_stress_b',shape=(5), val=0)
+        stress_a = self.create_output(name + 'stress_a', shape=(5), val=0)
+        stress_b = self.create_output(name + 'stress_b', shape=(5), val=0)
 
-        transverse_shear_stress = self.create_output(name+'shear_stress',shape=(5),val=0)
-        s_vonmises = self.create_output(name+'s_vonmises',shape=(5),val=0)
+        t_web = self.declare_variable(name + '_tweb')
+        Q = self.declare_variable(name + '_Q')
 
-        t_web = self.declare_variable(name+'t_web')
-        Q = self.declare_variable(name+'Q')
-        width = self.declare_variable(name+'width')
         for point in range(5):
             x = x_coord[point]
             y = y_coord[point]
             r = (x**2 + y**2)**0.5
 
-            axial_stress = (normal_force/A) + (bend_moment_1*y/Iy) + (bend_moment_2*x/Iz)
-            torsional_stress = torque*r/J
+            s_axial_a = (loads_a[0]/A) + (loads_a[4]*y/Iy) + (loads_a[5]*x/Iz)
+            s_axial_b = (loads_b[0]/A) + (loads_b[4]*y/Iy) + (loads_b[5]*x/Iz)
+            s_torsional_a = loads_a[3]*r/J
+            s_torsional_b = loads_b[3]*r/J
 
             if point == 4: # the max shear at the neutral axis:
-                transverse_shear_stress[point] = shear_force_h*Q/(Iy*2*t_web)
+                transverse_shear_stress_a[point] = loads_a[2]*Q/(Iy*2*t_web)
+                transverse_shear_stress_b[point] = loads_b[2]*Q/(Iy*2*t_web)
 
-            tau = torsional_stress + transverse_shear_stress[point]
+            tau_a = s_torsional_a + transverse_shear_stress_a[point]
+            tau_b = s_torsional_b + transverse_shear_stress_b[point]
 
-            s_vonmises[point] = (axial_stress**2 + 3*tau**2)**0.5
+            stress_a[point] = (s_axial_a**2 + 3*tau_a**2)**0.5
+            stress_b[point] = (s_axial_b**2 + 3*tau_b**2)**0.5
+            
 
+        max_stress_a = csdl.max(1E-3*stress_a)/1E-3
+        max_stress_b = csdl.max(1E-3*stress_b)/1E-3
 
+        stress_ab = self.create_output(name + 'stress_ab', shape=(2), val=0)
+        stress_ab[0] = max_stress_a
+        stress_ab[1] = max_stress_b
 
-
-
-
-        #self.print_var(shear_force_h)
-        #self.print_var(bend_moment_2)
-        # take the maximum stress:
-        s_max = csdl.max(s_vonmises)
-        self.register_output(name+'s_vm', s_max)
+        # self.register_output(name + '_stress', csdl.max(1E-3*stress_ab)/1E-3)
+        self.register_output(name + '_stress', (max_stress_a + max_stress_b)/2)
         

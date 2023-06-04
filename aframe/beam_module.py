@@ -1,7 +1,7 @@
 from lsdo_modules.module_csdl.module_csdl import ModuleCSDL
 from lsdo_modules.module.module import Module
 from caddee.caddee_core.system_model.design_scenario.design_condition.mechanics_group.mechanics_model.mechanics_model import MechanicsModel
-from aframe.beamgroup import BeamGroup
+from aframe.aframe import Aframe
 import numpy as np
 
 from lsdo_modules.module_csdl.module_csdl import ModuleCSDL
@@ -20,7 +20,6 @@ class LinearBeam(MechanicsModel):
         self.parameters.declare('beams', default={})
         self.parameters.declare('bounds', default={})
         self.parameters.declare('joints', default={})
-        self.parameters.declare('load_factor',default=1)
         self.num_nodes = None
 
     def construct_force_map(self, nodal_forces):
@@ -141,15 +140,13 @@ class LinearBeam(MechanicsModel):
         beams = self.parameters['beams']
         bounds = self.parameters['bounds']
         joints = self.parameters['joints']
-        load_factor = self.parameters['load_factor']
 
         csdl_model = LinearBeamCSDL(
             module=self,
             beams=beams,  
             bounds=bounds,
-            joints=joints,
-            load_factor=load_factor,
-        )
+            joints=joints)
+
         return csdl_model
 
 
@@ -249,44 +246,69 @@ class LinearBeam(MechanicsModel):
 #         return csdl_model
 
 
+    def umap(self, mesh, oml):
+        # Up = W*Us
 
-    def sisr(self, mesh, oml):
-
-        x = mesh.copy()
-        y = oml.copy()
-
-        n = len(mesh)
-        m = len(oml)
+        x, y = mesh.copy(), oml.copy()
+        n, m = len(mesh), len(oml)
 
         d = np.zeros((m,2))
         for i in range(m):
-            p = y[i,:]
-            dist = np.sum((x - p)**2, axis=1)
-            a = np.argsort(dist)[:2]
-            d[i,:] = a
+            dist = np.sum((x - y[i,:])**2, axis=1)
+            d[i,:] = np.argsort(dist)[:2]
 
         # create the weighting matrix:
         weights = np.zeros((m,n))
         for i in range(m):
             ia, ib = int(d[i,0]), int(d[i,1])
-
             a, b = x[ia,:], x[ib,:]
             p = y[i,:]
 
             length = np.linalg.norm(b - a)
             norm = (b - a)/length
-            ap = p - a
-            t = np.dot(ap,norm)
+            t = np.dot(p - a, norm)
             # c is the closest point on the line segment (a,b) to point p:
             c =  a + t*norm
 
-            ac = np.linalg.norm(c - a)
-            wa = 1 - (ac/length)
-            wb = 1 - wa
+            ac, bc = np.linalg.norm(c - a), np.linalg.norm(c - b)
+            l = max(length, bc)
             
-            weights[i, ia] = wa
-            weights[i, ib] = wb
+            weights[i, ia] = (l - ac)/length
+            weights[i, ib] = (l - bc)/length
 
+        return weights
+    
+
+
+    def fmap(self, mesh, oml):
+        # Fs = W*Fp
+
+        x, y = mesh.copy(), oml.copy()
+        n, m = len(mesh), len(oml)
+
+        d = np.zeros((m,2))
+        for i in range(m):
+            dist = np.sum((x - y[i,:])**2, axis=1)
+            d[i,:] = np.argsort(dist)[:2]
+
+        # create the weighting matrix:
+        weights = np.zeros((n, m))
+        for i in range(m):
+            ia, ib = int(d[i,0]), int(d[i,1])
+            a, b = x[ia,:], x[ib,:]
+            p = y[i,:]
+
+            length = np.linalg.norm(b - a)
+            norm = (b - a)/length
+            t = np.dot(p - a, norm)
+            # c is the closest point on the line segment (a,b) to point p:
+            c =  a + t*norm
+
+            ac, bc = np.linalg.norm(c - a), np.linalg.norm(c - b)
+            l = max(length, bc)
+            
+            weights[ia, i] = (l - ac)/length
+            weights[ib, i] = (l - bc)/length
 
         return weights
 
@@ -305,32 +327,27 @@ class LinearBeamCSDL(ModuleCSDL):
         self.parameters.declare('beams')
         self.parameters.declare('bounds')
         self.parameters.declare('joints')
-        self.parameters.declare('load_factor')
     
     def define(self):
         beams = self.parameters['beams']
         bounds = self.parameters['bounds']
         joints = self.parameters['joints']
-        load_factor = self.parameters['load_factor']
-
-
 
         for beam_name in beams:
-            n = beams[beam_name]['n']
-            typ = beams[beam_name]['type']
+            n = len(beams[beam_name]['nodes'])
+            cs = beams[beam_name]['cs']
 
-            if typ == 'box':
+            if cs == 'box':
                 xweb = self.register_module_input(beam_name+'t_web_in',shape=(n-1), computed_upstream=False)
                 xcap = self.register_module_input(beam_name+'t_cap_in',shape=(n-1), computed_upstream=False)
-                self.print_var(xweb)
-                self.register_output(beam_name+'_t_web',1*xweb)
-                self.register_output(beam_name+'_t_cap',1*xcap)
+                self.register_output(beam_name+'_tweb',1*xweb)
+                self.register_output(beam_name+'_tcap',1*xcap)
                 
-            elif typ == 'tube':
+            elif cs == 'tube':
                 thickness = self.register_module_input(beam_name+'thickness_in',shape=(n-1), computed_upstream=False)
                 radius = self.register_module_input(beam_name+'radius_in',shape=(n-1), computed_upstream=False)
-                self.register_output(beam_name+'_thickness', 1*thickness)
-                self.register_output(beam_name+'_radius', 1*radius)
+                self.register_output(beam_name+'_t', 1*thickness)
+                self.register_output(beam_name+'_r', 1*radius)
 
         # solve the beam group:
-        self.add_module(BeamGroup(beams=beams,bounds=bounds,joints=joints,load_factor=load_factor), name='BeamGroup')
+        self.add_module(Aframe(beams=beams, bounds=bounds, joints=joints), name='Aframe')
