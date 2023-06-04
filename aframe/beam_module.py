@@ -24,10 +24,9 @@ class LinearBeam(MechanicsModel):
 
     def construct_force_map(self, nodal_forces):
         wing_beam_mesh = self.parameters['mesh'].parameters['meshes']['wing_beam_mesh']
-
-        num_nodes = np.prod(nodal_forces.mesh.shape[:-1])
-        force_map = np.eye(num_nodes)
-        return force_map
+        wing_beam_oml_mesh = nodal_forces.mesh.value.reshape((-1, 3))
+        wing_force_map = self.fmap(wing_beam_mesh.value.reshape((-1,3)), oml=wing_beam_oml_mesh)
+        return wing_force_map
     
     def construct_moment_map(self, nodal_moments):
         num_nodes = np.prod(nodal_moments.mesh.shape[:-1])
@@ -37,18 +36,18 @@ class LinearBeam(MechanicsModel):
     def construct_displacement_map(self, nodal_outputs_mesh):
         wing_beam_mesh = self.parameters['mesh'].parameters['meshes']['wing_beam_mesh']
         wing_beam_oml_mesh = nodal_outputs_mesh.value.reshape((-1, 3))
-        wing_force_map = self.umap(wing_beam_mesh.value.reshape((-1,3)), oml=wing_beam_oml_mesh)
+        wing_displacement_map = self.umap(wing_beam_mesh.value.reshape((-1,3)), oml=wing_beam_oml_mesh)
 
-        return wing_force_map
+        return wing_displacement_map
     
     def construct_rotation_map(self, nodal_outputs_mesh):
         wing_beam_mesh = self.parameters['mesh'].parameters['meshes']['wing_beam_mesh'].reshape((-1,3))
         wing_beam_oml_mesh = nodal_outputs_mesh.value.reshape((-1, 3))
-        # wing_moment_map = self.mmap(wing_beam_mesh.value, oml=wing_beam_oml_mesh)
+        # wing_rotation_map = self.mmap(wing_beam_mesh.value, oml=wing_beam_oml_mesh)
 
-        moment_map = np.zeros((wing_beam_oml_mesh.shape[0],wing_beam_mesh.shape[0]))
+        rotation_map = np.zeros((wing_beam_oml_mesh.shape[0],wing_beam_mesh.shape[0]))
 
-        return moment_map
+        return rotation_map
     
     def construct_invariant_matrix(self):
         pass
