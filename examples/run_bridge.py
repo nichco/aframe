@@ -108,4 +108,7 @@ if __name__ == '__main__':
             plt.plot(x,y,color='k',zorder=7)
             plt.scatter(x,y,s=50,zorder=10,color='yellow',edgecolors='black',linewidth=1)
 
+    # plot the applied force arrow:
+    plt.arrow(1.5,1,0,0.2,width=0.04,color='red')
+
     plt.show()
