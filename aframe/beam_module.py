@@ -4,13 +4,12 @@ from caddee.caddee_core.system_model.design_scenario.design_condition.mechanics_
 from aframe.aframe import Aframe
 import numpy as np
 
-from lsdo_modules.module_csdl.module_csdl import ModuleCSDL
 import csdl
 import m3l
 import array_mapper as am
 
-# class LinearBeam(m3l.Model):
-class LinearBeam(MechanicsModel):
+class LinearBeam(m3l.Model):
+# class LinearBeam(MechanicsModel):
     def initialize(self, kwargs):
         self.parameters.declare('component', default=None)
         self.parameters.declare('mesh', default=None)
@@ -22,37 +21,37 @@ class LinearBeam(MechanicsModel):
         self.parameters.declare('joints', default={})
         self.num_nodes = None
 
-    def construct_force_map(self, nodal_forces):
-        wing_beam_mesh = self.parameters['mesh'].parameters['meshes']['wing_beam_mesh']
-        wing_beam_oml_mesh = nodal_forces.mesh.value.reshape((-1, 3))
-        wing_force_map = self.fmap(wing_beam_mesh.value.reshape((-1,3)), oml=wing_beam_oml_mesh)
-        return wing_force_map
+    def construct_force_map(self, nodal_force):
+        mesh = list(self.parameters['mesh'].parameters['meshes'].values())[0]   # this is only taking the first mesh added to the solver.
+        oml_mesh = nodal_force.mesh.value.reshape((-1, 3))
+        force_map = self.fmap(mesh.value.reshape((-1,3)), oml=oml_mesh)
+        return force_map
     
-    def construct_moment_map(self, nodal_moments):
-        num_nodes = np.prod(nodal_moments.mesh.shape[:-1])
+    def construct_moment_map(self, nodal_moment):
+        num_nodes = np.prod(nodal_moment.mesh.shape[:-1])
         moment_map = np.eye(num_nodes)
         return moment_map
 
     def construct_displacement_map(self, nodal_outputs_mesh):
-        wing_beam_mesh = self.parameters['mesh'].parameters['meshes']['wing_beam_mesh']
-        wing_beam_oml_mesh = nodal_outputs_mesh.value.reshape((-1, 3))
-        wing_displacement_map = self.umap(wing_beam_mesh.value.reshape((-1,3)), oml=wing_beam_oml_mesh)
+        mesh = list(self.parameters['mesh'].parameters['meshes'].values())[0]   # this is only taking the first mesh added to the solver.
+        oml_mesh = nodal_outputs_mesh.value.reshape((-1, 3))
+        displacement_map = self.umap(mesh.value.reshape((-1,3)), oml=oml_mesh)
 
-        return wing_displacement_map
+        return displacement_map
     
     def construct_rotation_map(self, nodal_outputs_mesh):
-        wing_beam_mesh = self.parameters['mesh'].parameters['meshes']['wing_beam_mesh'].reshape((-1,3))
-        wing_beam_oml_mesh = nodal_outputs_mesh.value.reshape((-1, 3))
-        # wing_rotation_map = self.mmap(wing_beam_mesh.value, oml=wing_beam_oml_mesh)
+        mesh = list(self.parameters['mesh'].parameters['meshes'].values())[0]   # this is only taking the first mesh added to the solver.
+        oml_mesh = nodal_outputs_mesh.value.reshape((-1, 3))
+        # rotation_map = self.mmap(mesh.value, oml=oml_mesh)
 
-        rotation_map = np.zeros((wing_beam_oml_mesh.shape[0],wing_beam_mesh.shape[0]))
+        rotation_map = np.zeros((oml_mesh.shape[0],mesh.shape[0]))
 
         return rotation_map
     
     def construct_invariant_matrix(self):
         pass
 
-    def evaluate(self, nodal_outputs_mesh:am.MappedArray, nodal_forces:m3l.Function=None, nodal_moments:m3l.Function=None):
+    def evaluate(self, nodal_outputs_mesh:am.MappedArray, nodal_force:m3l.FunctionValues=None, nodal_moment:m3l.FunctionValues=None):
         '''
         Evaluates the model.
 
@@ -60,81 +59,106 @@ class LinearBeam(MechanicsModel):
         ----------
         nodal_outputs_mesh : am.MappedArray
             The mesh or pointcloud representing the locations at which the nodal displacements and rotations will be returned.
-        nodal_forces : m3l.NodalState
+        nodal_force : m3l.NodalState
             The nodal forces that will be mapped onto the beam.
-        nodal_moments : m3l.NodalState
+        nodal_moment : m3l.NodalState
             The nodal moments that will be mapped onto the beam.
         
         Returns
         -------
-        nodal_displacements : m3l.NodalState
+        nodal_displacement : m3l.NodalState
             The displacements evaluated at the locations specified by nodal_outputs_mesh
-        nodal_rotations : m3l.NodalState
+        nodal_rotation : m3l.NodalState
             The rotations evluated at the locations specified by the nodal_outputs_mesh
         '''
-        mesh = self.parameters['mesh'].parameters['meshes']['wing_beam_mesh']
 
-        if nodal_forces is not None:
-            force_map = self.construct_force_map(nodal_forces=nodal_forces)
-        if nodal_moments is not None:
-            moment_map = self.construct_moment_map(nodal_moments=nodal_moments)
+        # NOTE: This is assuming one mesh. To handle multiple meshes, a method must be developed to figure out how mappings work.
+
+        mesh_name = list(self.parameters['mesh'].parameters['meshes'].keys())[0][:-5]   # this is only taking the first mesh added to the solver.
+        # NOTE: -5 is to remove '_mesh' from the end of the mesh name so that things like _forces can be appended.
+        mesh = list(self.parameters['mesh'].parameters['meshes'].values())[0]   # this is only taking the first mesh added to the solver.
+        component_name = self.parameters['component'].name
+
+        input_modules = []
+        if nodal_force is not None:
+            force_map = self.construct_force_map(nodal_force=nodal_force)
+            force_input_module = m3l.ModelInputModule(name='force_input_module', 
+                                                  module_input=nodal_force, map=force_map, model_input_name=f'{mesh_name}_forces')
+            input_modules.append(force_input_module)
+
+        if nodal_moment is not None:
+            moment_map = self.construct_moment_map(nodal_moment=nodal_moment)
+            moment_input_module = m3l.ModelInputModule(name='moment_input_module', 
+                                                   module_input=nodal_moment, map=moment_map, model_input_name=f'{mesh_name}_moments')
+            input_modules.append(moment_input_module)
+
+
         displacement_map = self.construct_displacement_map(nodal_outputs_mesh=nodal_outputs_mesh)
         rotation_map = self.construct_rotation_map(nodal_outputs_mesh=nodal_outputs_mesh)
 
-        csdl_model = ModuleCSDL()
+        displacement_output_module = m3l.ModelOutputModule(name='displacement_output_module',
+                                                    model_output_name=f'{mesh_name}_displacement', model_output_shape=mesh.shape[:-1] + (3,),
+                                                    map=displacement_map, module_output_name=f'beam_nodal_displacement_{component_name}',
+                                                    module_output_mesh=nodal_outputs_mesh)
+        rotation_output_module = m3l.ModelOutputModule(name='rotation_output_module',
+                                                    model_output_name=f'{mesh_name}_rotation', model_output_shape=mesh.shape[:-1] + (3,),
+                                                    map=rotation_map, module_output_name=f'beam_nodal_rotation_{component_name}',
+                                                    module_output_mesh=nodal_outputs_mesh)
+
+        nodal_displacement, nodal_rotation = self.construct_module_csdl(
+                         model_map=self._assemble_csdl(), 
+                         input_modules=input_modules,
+                         output_modules=[displacement_output_module, rotation_output_module]
+                         )
+
+        # input_mappings_csdl = csdl.Model()
+        # inputs_dictionary = {}
+        # if nodal_force is not None:
+        #     num_forces = np.prod(nodal_force.mesh.shape[:-1])
+        #     nodal_force_csdl = input_mappings_csdl.declare_variable(name=nodal_force.name, shape=(num_forces,nodal_force.mesh.shape[-1]))
+        #     force_map_csdl = input_mappings_csdl.create_input('force_map', val=force_map)
+        #     model_force_inputs = csdl.matmat(force_map_csdl, nodal_force_csdl)
+        #     input_mappings_csdl.register_output(f'{mesh_name}_forces', model_force_inputs)
+
+        #     inputs_dictionary[nodal_force.name] = nodal_force
+
+        # if nodal_moment is not None:
+        #     num_moments = np.prod(nodal_moment.mesh.shape[:-1])
+        #     nodal_moment_csdl = input_mappings_csdl.declare_variable(name=nodal_moment.name, shape=(num_moments,nodal_moment.mesh.shape[-1]))
+        #     moment_map_csdl = input_mappings_csdl.create_input('moment_map', val=moment_map)
+        #     model_moment_inputs = csdl.matmat(moment_map_csdl, nodal_moment_csdl)
+        #     input_mappings_csdl.register_output(f'{mesh_name}_moments', model_moment_inputs)
+
+        #     inputs_dictionary[nodal_moment.name] = nodal_moment
+
+        # beam_csdl = self._assemble_csdl()
+
+        # output_mappings_csdl = csdl.Model()
         
-        # beam_nodal_displacements, beam_nodal_rotations = super().evaluate(model_map=self._assemble_csdl(), 
-        #                  inputs=[(nodal_forces,force_map), (nodal_moments,moment_map)],
-        #                  outputs=[("beam_nodal_displacement_wing",displacement_map), ("beam_nodal_rotation_wing",rotation_map)]
-        #                  )
-
-        input_mappings_csdl = csdl.Model()
-        inputs_dictionary = {}
-        if nodal_forces is not None:
-            num_forces = np.prod(nodal_forces.mesh.shape[:-1])
-            nodal_forces_csdl = input_mappings_csdl.declare_variable(name=nodal_forces.name, shape=(num_forces,nodal_forces.mesh.shape[-1]))
-            force_map_csdl = input_mappings_csdl.create_input('force_map', val=force_map)
-            model_force_inputs = csdl.matmat(force_map_csdl, nodal_forces_csdl)
-            input_mappings_csdl.register_output('wing_beam_forces', model_force_inputs)
-
-            inputs_dictionary[nodal_forces.name] = nodal_forces
-        if nodal_moments is not None:
-            num_moments = np.prod(nodal_moments.mesh.shape[:-1])
-            nodal_moments_csdl = input_mappings_csdl.declare_variable(name=nodal_moments.name, shape=(num_moments,nodal_moments.mesh.shape[-1]))
-            moment_map_csdl = input_mappings_csdl.create_input('moment_map', val=moment_map)
-            model_moment_inputs = csdl.matmat(moment_map_csdl, nodal_moments_csdl)
-            input_mappings_csdl.register_output('wing_beam_moments', model_moment_inputs)
-
-            inputs_dictionary[nodal_moments.name] = nodal_moments
-
-        beam_csdl = self._assemble_csdl()
-
-        output_mappings_csdl = csdl.Model()
+        # nodal_displacements_csdl = output_mappings_csdl.declare_variable(name=f'{mesh_name}_displacement', shape=(mesh.shape[0],3))
+        # displacement_map_csdl = output_mappings_csdl.create_input('displacement_map', val=displacement_map)
+        # nodal_displacements_csdl = csdl.matmat(displacement_map_csdl, nodal_displacements_csdl)
+        # output_mappings_csdl.register_output(f'beam_nodal_displacement_{component_name}', nodal_displacements_csdl)
         
-        nodal_displacements_csdl = output_mappings_csdl.declare_variable(name='wing_beam_displacement', shape=(mesh.shape[0],3))
-        displacement_map_csdl = output_mappings_csdl.create_input('displacement_map', val=displacement_map)
-        nodal_displacements_csdl = csdl.matmat(displacement_map_csdl, nodal_displacements_csdl)
-        output_mappings_csdl.register_output('beam_nodal_displacements_wing', nodal_displacements_csdl)
-        
-        nodal_rotations_csdl = output_mappings_csdl.declare_variable(name='wing_beam_rotation', shape=(mesh.shape[0],3))
-        rotation_map_csdl = output_mappings_csdl.create_input('rotation_map', val=rotation_map)
-        nodal_rotations_csdl = csdl.matmat(rotation_map_csdl, nodal_rotations_csdl)
-        output_mappings_csdl.register_output('beam_nodal_rotations_wing', nodal_rotations_csdl)
+        # nodal_rotations_csdl = output_mappings_csdl.declare_variable(name=f'{mesh_name}_rotation', shape=(mesh.shape[0],3))
+        # rotation_map_csdl = output_mappings_csdl.create_input('rotation_map', val=rotation_map)
+        # nodal_rotations_csdl = csdl.matmat(rotation_map_csdl, nodal_rotations_csdl)
+        # output_mappings_csdl.register_output(f'beam_nodal_rotation_{component_name}', nodal_rotations_csdl)
 
-        csdl_model.add(submodel=input_mappings_csdl, name='beam_inputs_mapping')
-        csdl_model.add(submodel=beam_csdl, name='beam_model')
-        csdl_model.add(submodel=output_mappings_csdl, name='beam_outputs_mapping')
+        # csdl_model.add(submodel=input_mappings_csdl, name='beam_inputs_mapping')
+        # csdl_model.add(submodel=beam_csdl, name='beam_model')
+        # csdl_model.add(submodel=output_mappings_csdl, name='beam_outputs_mapping')
 
-        nodal_displacements = m3l.FunctionValues(name='beam_nodal_displacements_wing', 
-                                                 upstream_variables=inputs_dictionary,
-                                                 map=csdl_model,
-                                                 mesh=nodal_outputs_mesh)
-        nodal_rotations = m3l.FunctionValues(name='beam_nodal_rotations_wing', 
-                                                 upstream_variables=inputs_dictionary,
-                                                 map=csdl_model,
-                                                 mesh=nodal_outputs_mesh)
+        # nodal_displacement = m3l.FunctionValues(name=f'beam_nodal_displacement_{component_name}', 
+        #                                          upstream_variables=inputs_dictionary,
+        #                                          map=csdl_model,
+        #                                          mesh=nodal_outputs_mesh)
+        # nodal_rotation = m3l.FunctionValues(name=f'beam_nodal_rotation_{component_name}', 
+        #                                          upstream_variables=inputs_dictionary,
+        #                                          map=csdl_model,
+        #                                          mesh=nodal_outputs_mesh)
         
-        return nodal_displacements, nodal_rotations
+        return nodal_displacement, nodal_rotation
 
     def _assemble_csdl(self):
         beams = self.parameters['beams']
