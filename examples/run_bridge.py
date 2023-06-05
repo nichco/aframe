@@ -10,7 +10,7 @@ plt.rcParams.update(plt.rcParamsDefault)
 
 
 
-n = 5
+n = 10
 
 class Run(csdl.Model):
     def initialize(self):
@@ -38,7 +38,7 @@ class Run(csdl.Model):
 
 
         f = np.zeros((n,3))
-        f[-1,1] = 1000000
+        f[-1,1] = 1500000
         self.create_input('b4_forces', shape=(n,3), val=f)
 
         self.add(Aframe(beams=beams, bounds=bounds, joints=joints), name='Aframe')
