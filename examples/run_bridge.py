@@ -111,4 +111,7 @@ if __name__ == '__main__':
     # plot the applied force arrow:
     plt.arrow(1.5,1,0,0.2,width=0.04,color='red')
 
+    # plot the cg:
+    plt.scatter(sim['cg'][0],sim['cg'][1],color='blue',s=50,edgecolors='black')
+
     plt.show()
